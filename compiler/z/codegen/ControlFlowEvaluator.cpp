@@ -2292,6 +2292,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
    {
    switch (opCode)
       {
+      case TR::bcmpeq:
+      case TR::scmpeq:
       case TR::icmpeq:
       case TR::acmpeq:
       case TR::lcmpeq:
@@ -2299,6 +2301,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
          return TR::InstOpCode::COND_BE;
          }
          break;
+      case TR::bcmpne:
+      case TR::scmpne:
       case TR::icmpne:
       case TR::acmpne:
       case TR::lcmpne:
@@ -2306,6 +2310,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
          return TR::InstOpCode::COND_BNE;
          }
          break;
+      case TR::bcmplt:
+      case TR::scmplt:
       case TR::icmplt:
       case TR::iucmplt:
       case TR::lcmplt:
@@ -2314,6 +2320,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
          return TR::InstOpCode::COND_BL;
          }
          break;
+      case TR::bcmple:
+      case TR::scmple:
       case TR::icmple:
       case TR::iucmple:
       case TR::lcmple:
@@ -2322,6 +2330,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
          return TR::InstOpCode::COND_BNH;
          }
          break;
+      case TR::bcmpgt:
+      case TR::scmpgt:
       case TR::icmpgt:
       case TR::iucmpgt:
       case TR::lcmpgt:
@@ -2330,6 +2340,8 @@ TR::InstOpCode::S390BranchCondition OMR::Z::TreeEvaluator::getBranchConditionFro
          return TR::InstOpCode::COND_BH;
          }
          break;
+      case TR::bcmpge:
+      case TR::scmpge:
       case TR::icmpge:
       case TR::iucmpge:
       case TR::lcmpge:
@@ -2410,7 +2422,7 @@ TR::InstOpCode::Mnemonic OMR::Z::TreeEvaluator::getCompareOpFromNode(TR::CodeGen
          return TR::InstOpCode::CGR;
          }
       }
-   else if (node->getFirstChild()->getSize() == 4)
+   else
       {
       if (node->getOpCode().isUnsigned())
          {
@@ -2421,10 +2433,6 @@ TR::InstOpCode::Mnemonic OMR::Z::TreeEvaluator::getCompareOpFromNode(TR::CodeGen
          return TR::InstOpCode::CR;
          }
       }
-
-   TR_ASSERT(0, "Unhandled compare node type\n");
-   return TR::InstOpCode::CR;
-
    }
 
 int32_t OMR::Z::TreeEvaluator::countReferencesInTree(TR::Node *treeNode, TR::Node *node, TR::CodeGenerator *cg)

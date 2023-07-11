@@ -472,10 +472,10 @@ TR::DebugCounter *TR::DebugCounterGroup::findCounter(const char *nameChars, int3
 
    OMR::CriticalSection findCounterLock(_countersMutex);
 
-   CS2::HashIndex hi;
-   if (!_countersHashTable.Locate(name, hi))
+   auto search = _countersHashTable.find(name);
+   if(search == _countersHashTable.end())
       return NULL;
-   return _countersHashTable[hi];
+   return search->second;
    }
 
 TR::DebugCounterAggregation *TR::DebugCounterGroup::findAggregation(const char *nameChars, int32_t nameLength)
@@ -558,7 +558,7 @@ TR::DebugCounter *TR::DebugCounterGroup::createCounter(const char *name, int8_t 
 
    OMR::CriticalSection createCounterLock(_countersMutex);
 
-   _countersHashTable.Add(result->getName(), result);
+   _countersHashTable.insert(std::make_pair(result->getName(), result));
 
    return result;
    }

@@ -27,7 +27,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "cs2/hashtab.h"
+#include <map>
+#include "env/TypedAllocator.hpp"
 #include "env/CompilerEnv.hpp"
 #include "env/TRMemory.hpp"
 #include "env/jittypes.h"
@@ -269,8 +270,20 @@ public:
 
 class DebugCounterGroup
    {
-   CS2::HashTable<const char*, DebugCounter*, TRPersistentMemoryAllocator> _countersHashTable;
-   CS2::HashTable<const char*, DebugCounterAggregation*, TRPersistentMemoryAllocator> _aggregateCountersHashTable;
+   struct debugCounterNameComp
+      {
+      bool operator()(const char* lhs, const char* rhs) const
+         {
+         while (*lhs == *rhs)
+            {
+            if (*lhs==0) return false;
+            lhs+=1; rhs+=1;
+            }
+         return *lhs > *rhs ? true : false;
+         }
+      };
+
+   std::map<const char*, DebugCounter*, debugCounterNameComp, TR::typed_allocator<std::pair<const char*, DebugCounter*>, TRPersistentMemoryAllocator>> _countersHashTable;
    TR_PersistentList<DebugCounter> _counters;
    TR_PersistentList<DebugCounterAggregation> _aggregations;
    DebugCounter *createCounter (const char *name, int8_t fidelity, TR_PersistentMemory *mem);
@@ -283,7 +296,8 @@ class DebugCounterGroup
    TR_ALLOC(TR_MemoryBase::DebugCounter)
 
    DebugCounterGroup(TR_PersistentMemory *mem)
-         : _countersHashTable(TRPersistentMemoryAllocator(mem)), _aggregateCountersHashTable(TRPersistentMemoryAllocator(mem))
+         : _countersHashTable(debugCounterNameComp(),
+                              TR::typed_allocator<std::pair<const char*, DebugCounter*>, TRPersistentMemoryAllocator>(TRPersistentMemoryAllocator(mem)))
          {
          _countersMutex = TR::Monitor::create("countersMutex");
          }

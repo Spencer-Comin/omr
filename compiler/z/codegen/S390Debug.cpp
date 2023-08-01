@@ -1330,7 +1330,7 @@ TR_Debug::print(TR::FILE *pOutFile, TR::S390RSInstruction * instr)
       trfprintf(pOutFile, ",0x%1x,", instr->getMaskImmediate());
       print(pOutFile, instr->getMemoryReference(), instr);
       }
-   else if (instr->getOpCode().usesRegPairForTarget() && instr->getOpCode().usesRegPairForSource())
+   else if (instr->getOpCode().uses2RegPairs())
       {
       print(pOutFile, instr->getRegisterOperand(1)->getHighOrder());
       trfprintf(pOutFile, ",");
@@ -1338,7 +1338,7 @@ TR_Debug::print(TR::FILE *pOutFile, TR::S390RSInstruction * instr)
       trfprintf(pOutFile, ",");
       print(pOutFile, instr->getMemoryReference(), instr);
       }
-   else if (instr->getLastRegister() == NULL || instr->getOpCode().usesRegPairForTarget())
+   else if (instr->getLastRegister() == NULL || instr->getOpCode().usesRegPair())
       {
       print(pOutFile, instr->getFirstRegister());
       trfprintf(pOutFile, ",");

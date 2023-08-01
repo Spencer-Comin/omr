@@ -1009,7 +1009,7 @@ class S390RegInstruction : public TR::Instruction
    int8_t _firstConstant;
 
    /** Flag identifying pair or single */
-   bool _targetPairFlag;
+   bool _pairFlag;
 
    TR::InstOpCode::S390BranchCondition _branchCondition;
 
@@ -1022,28 +1022,28 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1)
       {
          checkRegForGPR0Disable(op, reg);
-         _targetPairFlag=reg->getRegisterPair()?true:false;
+         _pairFlag=reg->getRegisterPair()?true:false;
          if(!getOpCode().setsOperand1())
            useSourceRegister(reg);
          else
          useTargetRegister(reg);
 
-         // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-         // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+         // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+         // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
          // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
          // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-         TR_ASSERT( (!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                  || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+         TR_ASSERT( (!_pairFlag && !getOpCode().shouldUseRegPair())
+                  || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
                          TR::Node          *n,
                          TR::CodeGenerator *cg)
-      : TR::Instruction(op, n, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1), _targetPairFlag(false)
+      : TR::Instruction(op, n, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1), _pairFlag(false)
       {
       }
 
@@ -1051,7 +1051,7 @@ class S390RegInstruction : public TR::Instruction
                          TR::Node          *n,
                          TR::Instruction   *precedingInstruction,
                          TR::CodeGenerator *cg)
-      : TR::Instruction(op, n, precedingInstruction, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1), _targetPairFlag(false)
+      : TR::Instruction(op, n, precedingInstruction, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1), _pairFlag(false)
       {
       }
 
@@ -1059,7 +1059,7 @@ class S390RegInstruction : public TR::Instruction
                          TR::Node          *n,
                          int8_t           firstConstant,
                          TR::CodeGenerator *cg)
-      : TR::Instruction(op, n, cg),  _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(firstConstant), _targetPairFlag(false)
+      : TR::Instruction(op, n, cg),  _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(firstConstant), _pairFlag(false)
       {
       }
 
@@ -1068,7 +1068,7 @@ class S390RegInstruction : public TR::Instruction
                          int8_t           firstConstant,
                          TR::Instruction   *precedingInstruction,
                          TR::CodeGenerator *cg)
-      : TR::Instruction(op, n, precedingInstruction, cg),  _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(firstConstant), _targetPairFlag(false)
+      : TR::Instruction(op, n, precedingInstruction, cg),  _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(firstConstant), _pairFlag(false)
       {
       }
 
@@ -1080,22 +1080,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cond, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1106,22 +1106,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, precedingInstruction, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
 
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1133,19 +1133,19 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cond, precedingInstruction, cg), _branchCondition(TR::InstOpCode::COND_NOP), _firstConstant(-1)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1156,22 +1156,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cg), _branchCondition(brCond), _firstConstant(0)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1183,22 +1183,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, precedingInstruction, cg), _branchCondition(brCond), _firstConstant(0)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT( (!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-               || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT( (!_pairFlag && !getOpCode().shouldUseRegPair())
+               || (_pairFlag && getOpCode().canUseRegPair()) ,
                "OpCode [%s] %s use Register Pair for Target.\n",
                getOpCode().getMnemonicName(),
-               (_targetPairFlag)?"cannot":"should");
+               (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1210,22 +1210,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cond, cg), _branchCondition(brCond), _firstConstant(0)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    S390RegInstruction(TR::InstOpCode::Mnemonic    op,
@@ -1238,22 +1238,22 @@ class S390RegInstruction : public TR::Instruction
       : TR::Instruction(op, n, cond, precedingInstruction, cg), _branchCondition(brCond), _firstConstant(0)
       {
       checkRegForGPR0Disable(op, reg);
-      _targetPairFlag=reg->getRegisterPair()?true:false;
+      _pairFlag=reg->getRegisterPair()?true:false;
       if (!getOpCode().setsOperand1())
          useSourceRegister(reg);
       else
          useTargetRegister(reg);
 
-      // ShouldUseRegPairForTarget returns true for those instructions that require consequtive even-odd register pairs.
-      // CanUseRegPairForTarget returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
+      // ShouldUseRegPair returns true for those instructions that require consequtive even-odd register pairs.
+      // CanUseRegPair returns true for all the above instructions + STM/LTM (which can potentially take a register pair range).
 
       // So, if we find a register pair passed in, we check to make sure the instruction CAN use a register pair.
       // If we do not find a register pair, we check to make sure the instruction SHOULD NOT use a register pair.
-      TR_ASSERT((!_targetPairFlag && !getOpCode().shouldUseRegPairForTarget())
-                || (_targetPairFlag && getOpCode().canUseRegPairForTarget()) ,
+      TR_ASSERT((!_pairFlag && !getOpCode().shouldUseRegPair())
+                || (_pairFlag && getOpCode().canUseRegPair()) ,
                 "OpCode [%s] %s use Register Pair for Target.\n",
                 getOpCode().getMnemonicName(),
-                (_targetPairFlag)?"cannot":"should");
+                (_pairFlag)?"cannot":"should");
       }
 
    virtual char *description() { return "S390RegInstruction"; }
@@ -1292,10 +1292,10 @@ class S390RegInstruction : public TR::Instruction
     * Given that instruction expresses a register range (eg. LM or STM) the first and last register of the range
     * is fetched from first operand as a register pair or from the first two operands
     */
-   TR::Register *getFirstRegister()                {return _targetPairFlag? getRegisterOperand(1)->getHighOrder() : getRegisterOperand(1);}
-   TR::Register *getLastRegister()                 {return _targetPairFlag? getRegisterOperand(1)->getLowOrder():NULL;}
+   TR::Register *getFirstRegister()                {return _pairFlag? getRegisterOperand(1)->getHighOrder() : getRegisterOperand(1);}
+   TR::Register *getLastRegister()                 {return _pairFlag? getRegisterOperand(1)->getLowOrder():NULL;}
 
-   bool isTargetPair() { return _targetPairFlag; }
+   bool isTargetPair() { return _pairFlag; }
 
    bool matchesTargetRegister(TR::Register* reg)
       {
@@ -2453,7 +2453,7 @@ class S390RSInstruction : public TR::S390RegInstruction
            : S390RegInstruction(op, n, treg, cg), _sourceImmediate(imm), _maskImmediate(0), _idx(-1), _hasMaskImmediate(false), _hasSourceImmediate(true)
       {
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       };
@@ -2468,7 +2468,7 @@ class S390RSInstruction : public TR::S390RegInstruction
              _sourceImmediate(imm), _maskImmediate(0), _idx(-1), _hasMaskImmediate(false), _hasSourceImmediate(true)
       {
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       };
@@ -2483,7 +2483,7 @@ class S390RSInstruction : public TR::S390RegInstruction
 
       {
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       };
@@ -2499,7 +2499,7 @@ class S390RSInstruction : public TR::S390RegInstruction
              _sourceImmediate(imm), _maskImmediate(0), _idx(-1), _hasMaskImmediate(false), _hasSourceImmediate(true)
       {
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       };
@@ -2518,7 +2518,7 @@ class S390RSInstruction : public TR::S390RegInstruction
          (mf->getUnresolvedSnippet())->setDataReferenceInstruction(this);
 
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       }
@@ -2538,7 +2538,7 @@ class S390RSInstruction : public TR::S390RegInstruction
          (mf->getUnresolvedSnippet())->setDataReferenceInstruction(this);
 
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                 "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       }
@@ -2560,7 +2560,7 @@ class S390RSInstruction : public TR::S390RegInstruction
          (mf->getUnresolvedSnippet())->setDataReferenceInstruction(this);
 
       // 1 Register is specified - If it is not a register pair, make sure instruction doesn't take a range (i.e. STM).
-      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRangeForTarget(),
+      TR_ASSERT(treg->getRegisterPair() || !getOpCode().usesRegRange(),
                "OpCode [%s] requires a register range.\n",
                 getOpCode().getMnemonicName());
       }

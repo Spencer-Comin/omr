@@ -1301,7 +1301,7 @@ TR::Register *OMR::X86::TreeEvaluator::SSE2ArraycmpLenEvaluator(TR::Node *node, 
 
    TR::Register *s1Reg = cg->gprClobberEvaluate(s1AddrNode, TR::InstOpCode::MOVRegReg());
    TR::Register *s2Reg = cg->gprClobberEvaluate(s2AddrNode, TR::InstOpCode::MOVRegReg());
-   TR::Register *strLenReg = cg->gprClobberEvaluate(lengthNode, TR::InstOpCode::MOV8RegReg);
+   TR::Register *strLenReg = cg->longClobberEvaluate(lengthNode);
    TR::Register *highReg = NULL;
    TR::Register *equalTestReg = cg->allocateRegister(TR_GPR);
    TR::Register *s2ByteReg = cg->allocateRegister(TR_GPR);

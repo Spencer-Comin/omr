@@ -2153,6 +2153,13 @@ class S390RILInstruction : public TR::Instruction
       }
 
    S390RILInstruction(TR::InstOpCode::Mnemonic op, TR::Node * n, uint32_t mask,
+                         uint32_t           imm,
+                         TR::CodeGenerator *cg)
+      : TR::Instruction(op, n, cg), _targetPtr(NULL), _targetSnippet(NULL), _targetSymbol(NULL), _flagsRIL(0), _mask(mask), _targetLabel(NULL), _symbolReference(NULL), _sourceImmediate(imm)
+      {
+      }
+
+   S390RILInstruction(TR::InstOpCode::Mnemonic op, TR::Node * n, uint32_t mask,
                          TR::Snippet       *ts,
                          TR::CodeGenerator *cg)
       : TR::Instruction(op, n, cg), _targetPtr(NULL), _targetSnippet(ts), _targetSymbol(NULL), _flagsRIL(0), _mask(mask), _targetLabel(NULL), _symbolReference(NULL), _sourceImmediate(0)
@@ -2177,6 +2184,14 @@ class S390RILInstruction : public TR::Instruction
                          TR::Instruction   *precedingInstruction,
                          TR::CodeGenerator *cg)
       : TR::Instruction(op, n, precedingInstruction, cg), _targetPtr(targetPtr), _targetSnippet(NULL), _targetSymbol(NULL), _flagsRIL(0), _mask(mask), _targetLabel(NULL), _symbolReference(NULL), _sourceImmediate(0)
+      {
+      }
+
+   S390RILInstruction(TR::InstOpCode::Mnemonic op, TR::Node * n, uint32_t mask,
+                         uint32_t           imm,
+                         TR::Instruction   *precedingInstruction,
+                         TR::CodeGenerator *cg)
+      : TR::Instruction(op, n, precedingInstruction, cg), _targetPtr(NULL), _targetSnippet(NULL), _targetSymbol(NULL), _flagsRIL(0), _mask(mask), _targetLabel(NULL), _symbolReference(NULL), _sourceImmediate(imm)
       {
       }
 

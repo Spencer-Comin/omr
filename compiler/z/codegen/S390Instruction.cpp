@@ -2223,7 +2223,7 @@ TR::S390RILInstruction::generateBinaryEncoding()
          // delegate to targetSnippet Label to patch the imm. operand
          cg()->addRelocation(new (cg()->trHeapMemory()) TR::LabelRelative32BitRelocation(cursor, getTargetSnippet()->getSnippetLabel()));
          }
-      else
+      else if (getTargetPtr())
          {
          i2 = (int32_t)((getTargetPtr() - (uintptr_t)cursor) / 2);
 
@@ -2238,6 +2238,11 @@ TR::S390RILInstruction::generateBinaryEncoding()
 #endif
 
          (*(int32_t *) (cursor + 2)) = boi(i2);
+         }
+      else
+         {
+         // Offset is directly given
+         (*(int32_t *) (cursor + 2)) = _sourceImmediate;
          }
 
       cursor += getOpCode().getInstructionLength();

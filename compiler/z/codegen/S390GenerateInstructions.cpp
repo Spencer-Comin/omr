@@ -835,6 +835,16 @@ generateRILInstruction(TR::CodeGenerator * cg, TR::InstOpCode::Mnemonic op, TR::
    }
 
 TR::Instruction *
+generateRILInstruction(TR::CodeGenerator * cg, TR::InstOpCode::Mnemonic op, TR::Node * n, uint32_t mask, uint32_t imm, TR::Instruction * preced)
+   {
+   if (preced)
+      {
+      return new (INSN_HEAP) TR::S390RILInstruction(op, n, mask, imm, preced, cg);
+      }
+   return new (INSN_HEAP) TR::S390RILInstruction(op, n, mask, imm, cg);
+   }
+
+TR::Instruction *
 generateRILInstruction(TR::CodeGenerator *cg, TR::InstOpCode::Mnemonic op, TR::Node * n, TR::Register  *treg, TR::Snippet *ts, TR::Instruction *preced)
    {
    if (preced)

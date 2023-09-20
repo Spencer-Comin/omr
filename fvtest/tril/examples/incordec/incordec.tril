@@ -29,7 +29,7 @@
 ; int incordec(int* parm0) {
 ;    if (*parm0 < 0) {
 ;     return *parm0 - (int)1.0;
-;    } else { 
+;    } else {
 ;      int x = 1;
 ;      return *parm0 + x;
 ;    }

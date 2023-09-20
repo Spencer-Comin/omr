@@ -19,9 +19,28 @@
 # SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
 ###############################################################################
 
-add_subdirectory(incordec)
-add_subdirectory(mandelbrot)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-if(REPL)
-    add_subdirectory(repl)
-endif()
+project(repl LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+omr_add_executable(repl NOWARNINGS
+	main.cpp
+)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(READLINE REQUIRED readline)
+
+target_link_libraries(repl
+	tril
+    ${READLINE_LINK_LIBRARIES}
+)
+
+target_include_directories(repl
+    PUBLIC ${READLINE_INCLUDE_DIRS}
+)
+
+set_property(TARGET repl PROPERTY FOLDER fvtest/tril/examples)

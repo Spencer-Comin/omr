@@ -29,8 +29,9 @@
 #include <errno.h>
 #include "OMRTestEnv.hpp"
 #include "runtime/Runtime.hpp"
+#include "omrport.h"
 
-extern "C" bool initializeTestJit(TR_RuntimeHelper *helperIDs, void **helperAddresses, int32_t numHelpers, char *options);
+extern "C" bool initializeTestJit(TR_RuntimeHelper *helperIDs, void **helperAddresses, int32_t numHelpers, char *options, OMRPortLibrary *portLib);
 extern "C" void shutdownJit();
 
 void
@@ -48,7 +49,7 @@ TestCompiler::OMRTestEnv::TearDown()
 void
 TestCompiler::OMRTestEnv::initialize(char *options)
    {
-   initializeTestJit(0, 0, 0, options);
+   initializeTestJit(0, 0, 0, options, NULL);
    }
 
 void

@@ -1008,6 +1008,9 @@ public:
    int32_t                getArrayStride();
    int32_t                setArrayStride(int32_t s);
 
+   int8_t                 getMinTrailingZeros();
+   int8_t                 setMinTrailingZeros(int8_t c);
+
    TR::AutomaticSymbol * getPinningArrayPointer();
    TR::AutomaticSymbol * setPinningArrayPointer(TR::AutomaticSymbol *s);
 
@@ -1586,6 +1589,7 @@ protected:
    bool hasBlock();
    bool hasArrayStride();
    bool hasDataType();
+   bool hasMinTrailingZeros();
 
 public:
    // For opcode properties
@@ -1653,6 +1657,7 @@ protected:
       int32_t                _arrayStride;                  ///< hasArrayStride()
       TR::AutomaticSymbol  *_pinningArrayPointer;          ///< hasPinningArrayPointer()
       TR::DataTypes         _dataType;                     ///< hasDataType()  TODO: Change to TR::DataType once all target compilers support it
+      int8_t                _minTrailingZeros;             ///< hasMinTrailingZeros()
 
       UnionPropertyA()
          {

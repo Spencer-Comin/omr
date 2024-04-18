@@ -216,9 +216,10 @@ OMR::Node::Node(TR::Node *originatingByteCodeNode, TR::ILOpCodes op, uint16_t nu
        + self()->hasBlock()
        + self()->hasArrayStride()
        + self()->hasPinningArrayPointer()
-       + self()->hasDataType() <= 1,
+       + self()->hasDataType()
+       + self()->hasMinTrailingZeros() <= 1,
          "_unionPropertyA union is not disjoint for this node %s (%p):\n"
-         "  has({SymbolReference, ...}, ..., DataType) = ({%1d,%1d},%1d,%1d,%1d,%1d,%1d)\n",
+         "  has({SymbolReference, ...}, ..., DataType) = ({%1d,%1d},%1d,%1d,%1d,%1d,%1d,%1d)\n",
          self()->getOpCode().getName(), this,
          self()->hasSymbolReference(),
          self()->hasRegLoadStoreSymbolReference(),
@@ -226,7 +227,8 @@ OMR::Node::Node(TR::Node *originatingByteCodeNode, TR::ILOpCodes op, uint16_t nu
          self()->hasBlock(),
          self()->hasArrayStride(),
          self()->hasPinningArrayPointer(),
-         self()->hasDataType());
+         self()->hasDataType(),
+         slef()->hasMinTrailingZeros());
    }
 
 /**
@@ -5061,6 +5063,14 @@ OMR::Node::hasDataType()
    return _opCode.hasNoDataType() && !_opCode.hasSymbolReference() && !self()->hasRegLoadStoreSymbolReference();
    }
 
+bool
+OMR::Node::hasMinTrailingZeros()
+   {
+   // _UnionPropertyA._minTrailingZeros
+   // It is safe to set this union value if no one else is using the unions
+   return !(self()->hasSymbolReferenceOfAnyType() || self()->hasBranchDestinationNode() || self()->hasBlock() || self()->hasArrayStride() || self()->hasDataType());
+   }
+
 OMR::Node::UnionPropertyA_Type
 OMR::Node::getUnionPropertyA_Type()
    {
@@ -5184,6 +5194,19 @@ OMR::Node::setArrayStride(int32_t s)
    {
    TR_ASSERT(self()->hasArrayStride(), "attempting to access _arrayStride field for node %s %p that does not have it", self()->getOpCode().getName(), this);
    return (_unionPropertyA._arrayStride = s);
+   }
+
+int8_t
+OMR::Node::getMinTrailingZeros()
+   {
+   return self()->hasMinTrailingZeros() ? _unionPropertyA._minTrailingZeros : 0;
+   }
+
+int8_t
+OMR::Node::setMinTrailingZeros(int32_t s)
+   {
+   TR_ASSERT(self()->hasMinTrailingZeros(), "attempting to access _minTrailingZeros field for node %s %p that does not have it", self()->getOpCode().getName(), this);
+   return (_unionPropertyA._minTrailingZeros = s);
    }
 
 TR::AutomaticSymbol*

@@ -228,7 +228,7 @@ OMR::Node::Node(TR::Node *originatingByteCodeNode, TR::ILOpCodes op, uint16_t nu
          self()->hasArrayStride(),
          self()->hasPinningArrayPointer(),
          self()->hasDataType(),
-         slef()->hasMinTrailingZeros());
+         self()->hasMinTrailingZeros());
    }
 
 /**
@@ -5203,7 +5203,7 @@ OMR::Node::getMinTrailingZeros()
    }
 
 int8_t
-OMR::Node::setMinTrailingZeros(int32_t s)
+OMR::Node::setMinTrailingZeros(int8_t s)
    {
    TR_ASSERT(self()->hasMinTrailingZeros(), "attempting to access _minTrailingZeros field for node %s %p that does not have it", self()->getOpCode().getName(), this);
    return (_unionPropertyA._minTrailingZeros = s);

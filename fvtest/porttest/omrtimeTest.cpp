@@ -189,7 +189,7 @@ TEST(PortTimeTest, time_test1)
 		if (ntimeStart == ntimeCheck) {
 			outputErrorMessage(PORTTEST_ERROR_ARGS, "omrtime_nano_time did not change after a half-second forced delay\n");
 		}
-		
+
 		if (success) {
 			if (nClocktimeStart == nClocktimeCheck) {
 				outputErrorMessage(PORTTEST_ERROR_ARGS, "omrtime_current_time_nanos did not change after a half-second forced delay\n");
@@ -363,7 +363,7 @@ TEST(PortTimeTest, time_test3)
 				outputErrorMessage(PORTTEST_ERROR_ARGS, "omrtime_hires_clock() drift greater than 10%%\n");
 				failed = 1;
 			}
-			
+
 			ntimeDeltaAsMillis = ntimeDeltaAsMillis > mtimeDelta ? ntimeDeltaAsMillis - mtimeDelta : mtimeDelta - ntimeDeltaAsMillis;
 			if (ntimeDeltaAsMillis > (0.1 * mtimeDelta)) {
 				portTestEnv->log("\n");

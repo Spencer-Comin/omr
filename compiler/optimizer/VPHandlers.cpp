@@ -5804,7 +5804,12 @@ TR::Node *constrainAdd(OMR::ValuePropagation *vp, TR::Node *node)
    bool longAdd = node->getOpCode().isLong();
    constrainChildren(vp, node);
 
-   node->setMinTrailingZeros(std::min(8*node->getDataType().getSize(), node->getFirstChild()->getMinTrailingZeros(), node->getSecondChild()->getMinTrailingZeros()));
+   node->setMinTrailingZeros(std::min(
+      static_cast<int8_t>(8*TR::DataType::getSize(node->getDataType())),
+      std::min(
+         node->getFirstChild()->getMinTrailingZeros(),
+         node->getSecondChild()->getMinTrailingZeros()
+   )));
 
    bool lhsGlobal, rhsGlobal;
    TR::VPConstraint *lhs = vp->getConstraint(node->getFirstChild(), lhsGlobal);
@@ -5897,7 +5902,12 @@ TR::Node *constrainSubtract(OMR::ValuePropagation *vp, TR::Node *node)
    bool longSub = node->getOpCode().isLong();
    constrainChildren(vp, node);
 
-   node->setMinTrailingZeros(std::min(8*node->getDataType().getSize(), node->getFirstChild()->getMinTrailingZeros(), node->getSecondChild()->getMinTrailingZeros()));
+   node->setMinTrailingZeros(std::min(
+      static_cast<int8_t>(8*TR::DataType::getSize(node->getDataType())),
+      std::min(
+         node->getFirstChild()->getMinTrailingZeros(),
+         node->getSecondChild()->getMinTrailingZeros()
+   )));
 
    bool lhsGlobal, rhsGlobal;
    TR::VPConstraint *lhs = vp->getConstraint(node->getFirstChild(), lhsGlobal);
@@ -7306,7 +7316,7 @@ TR::Node *constrainIshr(OMR::ValuePropagation *vp, TR::Node *node)
    bool rhsGlobal;
    TR::VPConstraint *rhs = vp->getConstraint(node->getSecondChild(), rhsGlobal);
 
-   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - (rhs ? rhs->getUnsignedHighInt() : 0)));
+   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt() : 0)));
 
    if (rhs && rhs->asIntConst())
       {
@@ -7381,7 +7391,7 @@ TR::Node *constrainLshr(OMR::ValuePropagation *vp, TR::Node *node)
    bool rhsGlobal;
    TR::VPConstraint *rhs = vp->getConstraint(node->getSecondChild(), rhsGlobal);
 
-   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - (rhs ? rhs->getUnsignedHighInt() : 0)));
+   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt()) : 0));
 
    if (rhs && rhs->asIntConst())
       {
@@ -7461,7 +7471,7 @@ TR::Node *constrainIushr(OMR::ValuePropagation *vp, TR::Node *node)
    bool rhsGlobal;
    TR::VPConstraint *rhs = vp->getConstraint(node->getSecondChild(), rhsGlobal);
 
-   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - (rhs ? rhs->getUnsignedHighInt() : 0)));
+   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt() : 0)));
 
    if (rhs && rhs->asIntConst())
       {
@@ -7541,7 +7551,7 @@ TR::Node *constrainLushr(OMR::ValuePropagation *vp, TR::Node *node)
    bool rhsGlobal;
    TR::VPConstraint *rhs = vp->getConstraint(node->getSecondChild(), rhsGlobal);
 
-   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - (rhs ? rhs->getUnsignedHighInt() : 0)));
+   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt() : 0)));
 
    if (rhs && rhs->asIntConst())
       {
@@ -8337,7 +8347,7 @@ static TR::Node *constrainNarrowIntValue(OMR::ValuePropagation *vp, TR::Node *no
    const int64_t min = -signBit;
    const int64_t max = signBit - 1;
 
-   node->setMinTrailingZeros(std::min(resultSizeBits, node->getFirstChild()->getMinTrailingZeros()));
+   node->setMinTrailingZeros(std::min(static_cast<int8_t>(resultSizeBits), node->getFirstChild()->getMinTrailingZeros()));
 
    // Find the range of values that the child could produce.
    int64_t low = 0;

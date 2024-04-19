@@ -1699,6 +1699,7 @@ protected:
       HasArrayStride,                  ///< hasArrayStride()
       HasPinningArrayPointer,          ///< hasPinningArrayPointer()
       HasDataType                      ///< hasDataType()
+      HasMinTrailingZeros,             ///< hasMinTrailingZeros()
       };
 
    UnionPropertyA_Type getUnionPropertyA_Type();

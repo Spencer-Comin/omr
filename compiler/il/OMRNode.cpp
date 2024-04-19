@@ -5093,6 +5093,8 @@ OMR::Node::getUnionPropertyA_Type()
       return OMR::Node::HasPinningArrayPointer;
    else if (self()->hasDataType())
       return OMR::Node::HasDataType;
+   else if (self()->hasMinTrailingZeros())
+      return OMR::Node::HasMinTrailingZeros;
    return OMR::Node::HasNoUnionPropertyA;
    }
 

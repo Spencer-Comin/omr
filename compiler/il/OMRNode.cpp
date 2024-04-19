@@ -5068,7 +5068,7 @@ OMR::Node::hasMinTrailingZeros()
    {
    // _UnionPropertyA._minTrailingZeros
    // It is safe to set this union value if no one else is using the unions
-   return !(self()->hasSymbolReferenceOfAnyType() || self()->hasBranchDestinationNode() || self()->hasBlock() || self()->hasArrayStride() || self()->hasDataType());
+   return !(self()->hasSymbolReferenceOfAnyType() || self()->hasBranchDestinationNode() || self()->hasBlock() || self()->hasArrayStride() || self()->hasDataType() || self()->hasPinningArrayPointer());
    }
 
 OMR::Node::UnionPropertyA_Type

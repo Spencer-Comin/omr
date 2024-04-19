@@ -7391,7 +7391,7 @@ TR::Node *constrainLshr(OMR::ValuePropagation *vp, TR::Node *node)
    bool rhsGlobal;
    TR::VPConstraint *rhs = vp->getConstraint(node->getSecondChild(), rhsGlobal);
 
-   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt()) : 0));
+   node->setMinTrailingZeros(std::max(0, node->getFirstChild()->getMinTrailingZeros() - static_cast<int8_t>(rhs ? rhs->getUnsignedHighInt() : 0)));
 
    if (rhs && rhs->asIntConst())
       {

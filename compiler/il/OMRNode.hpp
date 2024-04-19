@@ -1698,7 +1698,7 @@ protected:
       HasBlock,                        ///< hasBlock()
       HasArrayStride,                  ///< hasArrayStride()
       HasPinningArrayPointer,          ///< hasPinningArrayPointer()
-      HasDataType                      ///< hasDataType()
+      HasDataType,                     ///< hasDataType()
       HasMinTrailingZeros,             ///< hasMinTrailingZeros()
       };
 

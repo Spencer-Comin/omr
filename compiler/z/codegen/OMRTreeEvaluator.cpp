@@ -15171,13 +15171,13 @@ OMR::Z::TreeEvaluator::arraytranslateDecodeSIMDEvaluator(TR::Node * node, TR::Co
 
    TR::Node* inputLenNode = node->getChild(4);
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
+   if (inputLenNode->getMinTrailingZeros() > 0)
+      if (inputLenNode->getOpCode().isLoadConst())
          TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateDecodeSIMDEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
+                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateDecodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
       else
          TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateDecodeSIMDEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
+                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateDecodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
    else
       TR::DebugCounter::incStaticDebugCounter(comp,
                            TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraytranslateDecodeSIMDEvaluator/%s", comp->signature()));
@@ -15460,13 +15460,13 @@ OMR::Z::TreeEvaluator::arraytranslateEncodeSIMDEvaluator(TR::Node * node, TR::Co
 
    TR::Node* inputLenNode = node->getChild(4);
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
+   if (inputLenNode->getMinTrailingZeros() > 0)
+      if (inputLenNode->getOpCode().isLoadConst())
          TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateEncodeSIMDEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
+                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateEncodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
       else
          TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateEncodeSIMDEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
+                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateEncodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
    else
       TR::DebugCounter::incStaticDebugCounter(comp,
                            TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraytranslateEncodeSIMDEvaluator/%s", comp->signature()));

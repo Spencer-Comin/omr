@@ -11706,16 +11706,11 @@ OMR::Z::TreeEvaluator::arraycmpEvaluator(TR::Node * node, TR::CodeGenerator * cg
    TR::Node * secondBaseAddr = node->getSecondChild();
    TR::Node * elemsExpr = node->getChild(2);
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraycmpEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraycmpEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraycmpEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraycmpEvaluator/(%s)",
+         elemsExpr->getOpCode().isLoadConst() ? "const" : "nonconst",
+         elemsExpr->getMinTrailingZeros(),
+         comp->signature()));
 
    TR::Register * firstBaseReg = NULL;
    TR::Register * secondBaseReg = NULL;
@@ -11815,16 +11810,11 @@ OMR::Z::TreeEvaluator::arraycmplenEvaluator(TR::Node * node, TR::CodeGenerator *
    TR::Node * secondBaseAddr = node->getSecondChild();
    TR::Node * elemsExpr = node->getChild(2);
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraycmplenEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraycmplenEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraycmplenEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraycmplenEvaluator/(%s)",
+         elemsExpr->getOpCode().isLoadConst() ? "const" : "nonconst",
+         elemsExpr->getMinTrailingZeros(),
+         comp->signature()));
 
    TR::Register * firstBaseReg = NULL;
    TR::Register * secondBaseReg = NULL;
@@ -12395,16 +12385,11 @@ OMR::Z::TreeEvaluator::arraytranslateEvaluator(TR::Node * node, TR::CodeGenerato
    bool isLengthConstant = inputLengthNode->getOpCode().isLoadConst();
    TR::Register * inputLenReg = NULL;
 
-   if (inputLengthNode->getMinTrailingZeros() > 0)
-      if (inputLengthNode->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateEvaluator/%d/%s", inputLengthNode->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateEvaluator/%d/%s", inputLengthNode->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraytranslateEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraytranslateEvaluator/(%s)",
+         inputLengthNode->getOpCode().isLoadConst() ? "const" : "nonconst",
+         inputLengthNode->getMinTrailingZeros(),
+         comp->signature()));
 
    if (isLengthConstant)
       {
@@ -12602,16 +12587,11 @@ OMR::Z::TreeEvaluator::arraysetEvaluator(TR::Node * node, TR::CodeGenerator * cg
    bool lenMinusOne = false;
    TR::Compilation *comp = cg->comp();
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraysetEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraysetEvaluator/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraysetEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraysetEvaluator/(%s)",
+         elemsExpr->getOpCode().isLoadConst() ? "const" : "nonconst",
+         elemsExpr->getMinTrailingZeros(),
+         comp->signature()));
 
    TR::Register * baseReg = NULL;
    bool evaluateChildren=true;
@@ -13491,16 +13471,11 @@ void
 OMR::Z::TreeEvaluator::primitiveArraycopyEvaluator(TR::Node* node, TR::CodeGenerator* cg, TR::Node* byteSrcNode, TR::Node* byteDstNode, TR::Node* byteLenNode)
    {
    auto comp = cg->comp();
-   if (byteLenNode->getMinTrailingZeros() > 0)
-      if (byteLenNode->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/primitiveArraycopyEvaluator/%d/%s", byteLenNode->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/primitiveArraycopyEvaluator/%d/%s", byteLenNode->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(cg->comp(),
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/primitiveArraycopyEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/primitiveArraycopyEvaluator/(%s)",
+         byteLenNode->getOpCode().isLoadConst() ? "const" : "nonconst",
+         byteLenNode->getMinTrailingZeros(),
+         comp->signature()));
 
    TR::Register* byteSrcReg = NULL;
    TR::Register* byteDstReg = NULL;
@@ -15171,16 +15146,11 @@ OMR::Z::TreeEvaluator::arraytranslateDecodeSIMDEvaluator(TR::Node * node, TR::Co
 
    TR::Node* inputLenNode = node->getChild(4);
 
-   if (inputLenNode->getMinTrailingZeros() > 0)
-      if (inputLenNode->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateDecodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateDecodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraytranslateDecodeSIMDEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraytranslateDecodeSIMDEvaluator/(%s)",
+         inputLenNode->getOpCode().isLoadConst() ? "const" : "nonconst",
+         inputLenNode->getMinTrailingZeros(),
+         comp->signature()));
 
    // Optimize the constant length case
    bool isLenConstant = inputLenNode->getOpCode().isLoadConst() && performTransformation(comp, "O^O [%p] Reduce input length to constant.\n", inputLenNode);
@@ -15460,16 +15430,11 @@ OMR::Z::TreeEvaluator::arraytranslateEncodeSIMDEvaluator(TR::Node * node, TR::Co
 
    TR::Node* inputLenNode = node->getChild(4);
 
-   if (inputLenNode->getMinTrailingZeros() > 0)
-      if (inputLenNode->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraytranslateEncodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraytranslateEncodeSIMDEvaluator/%d/%s", inputLenNode->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraytranslateEncodeSIMDEvaluator/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraytranslateEncodeSIMDEvaluator/(%s)",
+         inputLenNode->getOpCode().isLoadConst() ? "const" : "nonconst",
+         inputLenNode->getMinTrailingZeros(),
+         comp->signature()));
 
    // Optimize the constant length case
    bool isLenConstant = inputLenNode->getOpCode().isLoadConst() && performTransformation(comp, "O^O [%p] Reduce input length to constant.\n", inputLenNode);
@@ -15779,16 +15744,11 @@ OMR::Z::TreeEvaluator::arraycmpSIMDHelper(TR::Node *node,
    bool isFoldedIf = compareTarget != NULL;
    TR::Compilation *comp = cg->comp();
 
-   if (elemsExpr->getMinTrailingZeros() > 0)
-      if (elemsExpr->getOpCode().isLoadConst())
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/const/arraycmpSIMDHelper/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-      else
-         TR::DebugCounter::incStaticDebugCounter(comp,
-                              TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/nonzero/nonconst/arraycmpSIMDHelper/%d/%s", elemsExpr->getMinTrailingZeros(), comp->signature()));
-   else
-      TR::DebugCounter::incStaticDebugCounter(comp,
-                           TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/zero/arraycmpSIMDHelper/%s", comp->signature()));
+   TR::DebugCounter::incStaticDebugCounter(comp,
+      TR::DebugCounter::debugCounterName(comp, "minTrailingZeros/%s/%d/arraycmpSIMDHelper/(%s)",
+         elemsExpr->getOpCode().isLoadConst() ? "const" : "nonconst",
+         elemsExpr->getMinTrailingZeros(),
+         comp->signature()));
 
    TR::InstOpCode::S390BranchCondition ifxcmpBrCond = TR::InstOpCode::COND_NOP;
    if (isFoldedIf)

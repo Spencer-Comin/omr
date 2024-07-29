@@ -1260,6 +1260,7 @@ TR_LoopReducer::generateArrayset(TR_InductionVariable * indVar, TR::Block * loop
    if (offset != 0)
       dst = TR::Node::create(op_add, 2, dst, TR::Node::create(dst, op_const, 0, static_cast<int32_t>(offset)));
 
+   traceMsg(comp(), "Successful generateArrayset\n");
    TR::Node * arrayset = TR::Node::create(TR::arrayset, 3,
                                         dst,
                                         copyValueNode,

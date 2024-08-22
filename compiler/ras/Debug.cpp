@@ -1075,7 +1075,7 @@ TR_Debug::nodePrintAllFlags(TR::Node *node, TR_PrettyPrinterString &output)
    FLAG(chkCharArrayTRT, "charArrayTRT");
    FLAG(chkEscapesInColdBlock, "escapesInColdBlock");
 #ifdef J9_PROJECT_SPECIFIC
-   FLAG(chkDontInlineUnsafePutOrderedCall, "dontInlineUnsafePutOrderedCall");
+   FLAG(chkDontInlineUnsafePutOrderedCall, "dontInlineUnsafeOrderedCall");
 #endif
    FLAG(chkHeapificationStore, "HeapificationStore");
    FLAG(chkHeapificationAlloc, "HeapificationAlloc");

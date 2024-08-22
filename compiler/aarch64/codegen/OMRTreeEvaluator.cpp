@@ -6049,7 +6049,13 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg, TR::CodeGenerator *cg)
    {
+   // TODO: collapse the needSync definitions
    bool needSync = (node->getSymbolReference()->getSymbol()->isSyncVolatile() && cg->comp()->target().isSMP());
+   if (node->getSymbolReference()->getSymbol()->isShadow() &&
+       node->getSymbolReference()->getSymbol()->isOrdered() && cg->comp()->target().isSMP())
+      {
+      needSync = true;
+      }
 
    node->setRegister(targetReg);
    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);

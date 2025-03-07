@@ -523,7 +523,7 @@ OMR::Symbol::setMemoryOrdering(OMR::Symbol::MemoryOrdering ordering)
          _flags.setValue(MemoryOrderingMask, AcquireRelease);
          break;
       case VolatileSemantics:
-         _flags.setValue(MemoryOrderingMask, VolatileSemantics);
+         _flags.setValue(MemoryOrderingMask, Volatile);
          break;
 
       default:

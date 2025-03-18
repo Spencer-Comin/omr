@@ -6115,18 +6115,49 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    return commonLoadEvaluator(node, op, size, tempReg, cg);
    }
 
+static TR::InstOpCode::Mnemonic
+getAcquireReleaseOpCode(TR::InstOpCode::Mnemonic op)
+   {
+   switch (op)
+      {
+      case TR::InstOpCode::ldrimmw:   return TR::InstOpCode::ldarw;
+      case TR::InstOpCode::ldrimmx:   return TR::InstOpCode::ldarx;
+      case TR::InstOpCode::ldrsbimmx: return TR::InstOpCode::ldarb;
+      case TR::InstOpCode::ldrshimmx: return TR::InstOpCode::ldarh;
+      case TR::InstOpCode::strimmx:   return TR::InstOpCode::stlrx;
+      case TR::InstOpCode::strbimm:   return TR::InstOpCode::stlrb;
+      case TR::InstOpCode::strhimm:   return TR::InstOpCode::stlrh;
+      case TR::InstOpCode::strimmw:   return TR::InstOpCode::stlrw;
+
+      default:
+         return TR::InstOpCode::bad;
+      }
+   }
+
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg, TR::CodeGenerator *cg)
    {
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
+   static const bool tryLDAR = (feGetEnv("TR_tryLDAR") != NULL);
 
    node->setRegister(targetReg);
    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
 
+   bool succeededLDAR = false;
+   if (needSync && tryLDAR)
+      {
+      TR::InstOpCode::Mnemonic ldar = getAcquireReleaseOpCode(op);
+      if (ldar != TR::InstOpCode::bad)
+         {
+         succeededLDAR = true;
+         op = ldar;
+         }
+      }
+
    generateTrg1MemInstruction(cg, op, node, targetReg, tempMR);
 
-   if (needSync)
+   if (needSync && !(tryLDAR && succeededLDAR))
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
       }
@@ -6244,6 +6275,18 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    TR::Node *valueChild;
+   static const bool trySTLR = (feGetEnv("TR_trySTLR") != NULL);
+
+   bool succeededSTLR = false;
+   if (trySTLR && cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease())
+      {
+      TR::InstOpCode::Mnemonic stlr = getAcquireReleaseOpCode(op);
+      if (stlr != TR::InstOpCode::bad)
+         {
+         succeededSTLR = true;
+         op = stlr;
+         }
+      }
 
    if (node->getOpCode().isIndirect())
       {
@@ -6254,7 +6297,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       valueChild = node->getFirstChild();
       }
 
-   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease())
+   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && !(trySTLR && succeededSTLR))
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishst);
       }
@@ -6309,7 +6352,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       generateMemSrc1Instruction(cg, op, node, tempMR, cg->evaluate(valueChild));
       }
 
-   if (cg->comp()->target().isSMP() && sym->isVolatile())
+   if (cg->comp()->target().isSMP() && sym->isVolatile() && !(trySTLR && succeededSTLR))
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ish);
       }

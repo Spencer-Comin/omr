@@ -6115,18 +6115,87 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    return commonLoadEvaluator(node, op, size, tempReg, cg);
    }
 
+static void
+reifyMemoryReference(TR::Node *node, TR::Register *targetReg, TR::MemoryReference *mr, TR::CodeGenerator *cg)
+   {
+   // TODO: this probably exists somewhere else
+   TR::Register *baseReg = mr->getBaseRegister();
+   TR::Register *indexReg = mr->getIndexRegister();
+   intptr_t offset = mr->getOffset();
+
+   if (offset == 0)
+      {
+      if (baseReg != NULL && indexReg == NULL)
+         {
+         if (baseReg != targetReg)
+            generateMovInstruction(cg, node, targetReg, baseReg);
+         }
+      else if (indexReg != NULL && baseReg == NULL)
+         {
+         if (baseReg != targetReg)
+            generateMovInstruction(cg, node, targetReg, indexReg);
+         }
+      else
+         {
+         generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, targetReg, baseReg, indexReg);
+         }
+      }
+   else
+      {
+      if (baseReg == NULL)
+         {
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, targetReg, indexReg, offset);
+         }
+      else if (indexReg == NULL)
+         {
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, targetReg, baseReg, offset);
+         }
+      else
+         {
+         generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, targetReg, baseReg, indexReg);
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, targetReg, targetReg, offset);
+         }
+      }
+   }
+
+static TR::InstOpCode
+getAcquireReleaseOpCode(TR::DataType type, bool isLoad)
+   {
+   switch (type)
+      {
+      case TR::Int64: return isLoad ? TR::InstOpCode::ldarx : TR::InstOpCode::stlrx;
+      case TR::Int32: return isLoad ? TR::InstOpCode::ldarw : TR::InstOpCode::stlrw;
+      case TR::Int16: return isLoad ? TR::InstOpCode::ldarh : TR::InstOpCode::stlrh;
+      case TR::Int8:  return isLoad ? TR::InstOpCode::ldarb : TR::InstOpCode::stlrb;
+      default: TR_ASSERT_FATAL(false, "Unrecognized type (%s) for getAcquireReleaseOpCode", TR::DataType::getName(type));
+      }
+   }
+
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg, TR::CodeGenerator *cg)
    {
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
+   static const bool tryLDAR = (feGetEnv("TR_tryLDAR") != NULL);
 
    node->setRegister(targetReg);
    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
 
-   generateTrg1MemInstruction(cg, op, node, targetReg, tempMR);
+   if (needSync && tryLDAR)
+      {
+      TR::Register *addrReg = cg->allocateRegister();
 
-   if (needSync)
+      reifyMemoryReference(node, addrReg, tempMR, cg);
+      generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(node->getDataType(), true), node, targetReg, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0));
+
+      cg->stopUsingRegister(addrReg);
+      }
+   else
+      {
+      generateTrg1MemInstruction(cg, op, node, targetReg, tempMR);
+      }
+
+   if (needSync && !tryLDAR)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
       }
@@ -6244,6 +6313,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    TR::Node *valueChild;
+   static const bool trySTLR = (feGetEnv("TR_trySTLR") != NULL);
 
    if (node->getOpCode().isIndirect())
       {
@@ -6254,7 +6324,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       valueChild = node->getFirstChild();
       }
 
-   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease())
+   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && !trySTLR)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishst);
       }
@@ -6295,21 +6365,41 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
     * if valueChild is a compressed refs sequence of address constant NULL,
     * or valueChild is a zero constant integer.
     */
+   bool inZeroReg = false;
+   TR::Register *srcReg;
    if ((valueChildRoot != NULL) || (valueChild->getDataType().isIntegral() && valueChild->isConstZeroValue() && (valueChild->getRegister() == NULL)))
       {
-      TR::Register *zeroReg = cg->allocateRegister();
-      generateMemSrc1Instruction(cg, op, node, tempMR, zeroReg);
-      TR::RegisterDependencyConditions *deps = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, 1, cg->trMemory());
-      deps->addPostCondition(zeroReg, TR::RealRegister::xzr);
-      generateLabelInstruction(cg, TR::InstOpCode::label, node, generateLabelSymbol(cg), deps);
-      cg->stopUsingRegister(zeroReg);
+      srcReg = cg->allocateRegister();
+      inZeroReg = true;
       }
    else
       {
-      generateMemSrc1Instruction(cg, op, node, tempMR, cg->evaluate(valueChild));
+      srcReg = cg->evaluate(valueChild);
       }
 
-   if (cg->comp()->target().isSMP() && sym->isVolatile())
+   if (trySTLR && sym->sym->isAtLeastOrStrongerThanAcquireRelease())
+      {
+      TR::Register *addrReg = cg->allocateRegister();
+
+      reifyMemoryReference(node, addrReg, tempMR, cg);
+      generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(node->getDataType(), false), node, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0), srcReg);
+
+      cg->stopUsingRegister(addrReg);
+      }
+   else
+      {
+      generateMemSrc1Instruction(cg, op, node, tempMR, srcReg);
+      }
+
+   if (inZeroReg)
+      {
+      TR::RegisterDependencyConditions *deps = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, 1, cg->trMemory());
+      deps->addPostCondition(srcReg, TR::RealRegister::xzr);
+      generateLabelInstruction(cg, TR::InstOpCode::label, node, generateLabelSymbol(cg), deps);
+      cg->stopUsingRegister(srcReg);
+      }
+
+   if (cg->comp()->target().isSMP() && sym->isVolatile() && !trySTLR)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ish);
       }

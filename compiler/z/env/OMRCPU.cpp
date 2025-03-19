@@ -676,23 +676,39 @@ OMR::Z::CPU::setSupportsVectorPackedDecimalEnhancementFacility3(bool value)
 bool
 OMR::Z::CPU::getSupportsHardware32bitCompress()
    {
-   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4) || TR::InstOpCode(TR::InstOpCode::BEXTG).canEmulate();
+#ifdef EMULATE_ZNEXT
+   return true;
+#else
+   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4);
+#endif
    }
 
 bool
 OMR::Z::CPU::getSupportsHardware64bitCompress()
    {
-   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4) || TR::InstOpCode(TR::InstOpCode::BEXTG).canEmulate();
+#ifdef EMULATE_ZNEXT
+   return true;
+#else
+   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4);
+#endif
    }
 
 bool
 OMR::Z::CPU::getSupportsHardware32bitExpand()
    {
-   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4) || TR::InstOpCode(TR::InstOpCode::BDEPG).canEmulate();
+#ifdef EMULATE_ZNEXT
+   return true;
+#else
+   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4);
+#endif
    }
 
 bool
 OMR::Z::CPU::getSupportsHardware64bitExpand()
    {
-   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4) || TR::InstOpCode(TR::InstOpCode::BDEPG).canEmulate();
+#ifdef EMULATE_ZNEXT
+   return true;
+#else
+   return self()->supportsFeature(OMR_FEATURE_S390_MISCELLANEOUS_INSTRUCTION_EXTENSION_4);
+#endif
    }

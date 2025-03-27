@@ -12243,7 +12243,8 @@
                         S390OpProp_UsesTarget |
                         S390OpProp_SetsCC |
                         S390OpProp_SetsZeroFlag |
-                        S390OpProp_SetsOperand1
+                        S390OpProp_SetsOperand1 |
+                        S390OpProp_IsEmulatable
    },
 
    {

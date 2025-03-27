@@ -2452,7 +2452,7 @@ OMR::Z::TreeEvaluator::lcompressbitsEvaluator(TR::Node *node, TR::CodeGenerator 
    }
 
 static inline TR::Register*
-inlineBitExpand(TR::Node *node, TR::CodeGenerator *cg)
+inlineBitExpand(TR::Node *node, TR::CodeGenerator *cg, TR::DataType type)
    {
    TR::Node *argNode = node->getFirstChild();
    TR::Node *maskNode = node->getSecondChild();
@@ -2460,8 +2460,29 @@ inlineBitExpand(TR::Node *node, TR::CodeGenerator *cg)
    TR::Register *maskReg = cg->evaluate(maskNode);
    TR::Register *bitCountReg = cg->allocateRegister();
 
-   generateRIInstruction(cg, TR::InstOpCode::LGHI, node, bitCountReg, -1);
-   generateRRInstruction(cg, TR::InstOpCode::XGR, node, bitCountReg, maskReg);
+   switch (type)
+      {
+      case TR::Int64:
+         generateRIInstruction(cg, TR::InstOpCode::LGHI, node, bitCountReg, -1);
+         break;
+      case TR::Int32:
+         generateRILInstruction(cg, TR::InstOpCode::LLILF, node, bitCountReg, -1);
+         break;
+      case TR::Int16:
+         generateRIInstruction(cg, TR::InstOpCode::LLILL, node, bitCountReg, -1);
+         generateRRInstruction(cg, TR::InstOpCode::NGR, node, maskReg, bitCountReg);
+         break;
+      case TR::Int8:
+         generateRIInstruction(cg, TR::InstOpCode::LLILL, node, bitCountReg, 0xff);
+         generateRRInstruction(cg, TR::InstOpCode::NGR, node, maskReg, bitCountReg);
+         break;
+
+      default:
+         TR_ASSERT_FATAL(false, "Unrecognized expandbits type %s\n", type.toString());
+         break;
+      }
+
+   generateRRInstruction(cg, type == TR::Int64 ? TR::InstOpCode::XGR : TR::InstOpCode::XR, node, bitCountReg, maskReg);
    generateRRFInstruction(cg, TR::InstOpCode::POPCNT, node, bitCountReg, bitCountReg, static_cast<uint8_t>(0x8), static_cast<uint8_t>(0x0), NULL);
    generateRSInstruction(cg, TR::InstOpCode::SLLG, node, argReg, argReg, generateS390MemoryReference(bitCountReg, 0, cg));
    generateRRFInstruction(cg, TR::InstOpCode::BDEPG, node, argReg, argReg, maskReg, static_cast<uint8_t>(0));
@@ -2478,25 +2499,25 @@ inlineBitExpand(TR::Node *node, TR::CodeGenerator *cg)
 TR::Register*
 OMR::Z::TreeEvaluator::bexpandbitsEvaluator(TR::Node *node, TR::CodeGenerator *cg)
    {
-   return inlineBitExpand(node, cg);
+   return inlineBitExpand(node, cg, TR::Int8);
    }
 
 TR::Register*
 OMR::Z::TreeEvaluator::sexpandbitsEvaluator(TR::Node *node, TR::CodeGenerator *cg)
    {
-   return inlineBitExpand(node, cg);
+   return inlineBitExpand(node, cg, TR::Int16);
    }
 
 TR::Register*
 OMR::Z::TreeEvaluator::iexpandbitsEvaluator(TR::Node *node, TR::CodeGenerator *cg)
    {
-   return inlineBitExpand(node, cg);
+   return inlineBitExpand(node, cg, TR::Int32);
    }
 
 TR::Register*
 OMR::Z::TreeEvaluator::lexpandbitsEvaluator(TR::Node *node, TR::CodeGenerator *cg)
    {
-   return inlineBitExpand(node, cg);
+   return inlineBitExpand(node, cg, TR::Int64);
    }
 
 TR::Register*

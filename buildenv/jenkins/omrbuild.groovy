@@ -20,41 +20,41 @@
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
  *******************************************************************************/
 
-defaultCompile = 'make -j4'
-defaultReference = '${HOME}/gitcache'
-autoconfBuildDir = '.'
-cmakeBuildDir = 'build'
-workspaceName = 'Build'
-scmVars = null
-customWorkspace = null
+def defaultCompile = 'make -j4'
+def defaultReference = '${HOME}/gitcache'
+def autoconfBuildDir = '.'
+def cmakeBuildDir = 'build'
+def workspaceName = 'Build'
+def scmVars = null
+def customWorkspace = null
 
-dockerImage = null
-dockerImageName = (params.IMAGE_NAME) ? params.IMAGE_NAME : "buildomr"
+def dockerImage = null
+def dockerImageName = (params.IMAGE_NAME) ? params.IMAGE_NAME : "buildomr"
 
 /**
  * Move the below parameters into SPECS while implementing a generic
  * approach to support Dockerfiles.
  */
-os = (params.OS) ? params.OS : "ubuntu"
-arch = (params.ARCH) ? params.ARCH : "x86_64"
+def os = (params.OS) ? params.OS : "ubuntu"
+def arch = (params.ARCH) ? params.ARCH : "x86_64"
 
-buildSpec = (params.BUILDSPEC) ? params.BUILDSPEC : error("BUILDSPEC not specified")
-cmdLine = params.ghprbCommentBody
-pullId = params.ghprbPullId
+def buildSpec = (params.BUILDSPEC) ? params.BUILDSPEC : error("BUILDSPEC not specified")
+def cmdLine = params.ghprbCommentBody
+def pullId = params.ghprbPullId
 
-cgroupV1Specs = ["linux_x86"]
-cgroupV2Specs = ["linux_x86-64", "linux_ppc-64_le_gcc"]
-dockerSpecs = ["linux_x86", "linux_x86-64", "linux_riscv64_cross"]
+def cgroupV1Specs = ["linux_x86"]
+def cgroupV2Specs = ["linux_x86-64", "linux_ppc-64_le_gcc"]
+def dockerSpecs = ["linux_x86", "linux_x86-64", "linux_riscv64_cross"]
 
-nodeLabels = []
-runInDocker = false
+def nodeLabels = []
+def runInDocker = false
 
-cmakeAppend = ""
-compileAppend = ""
-testAppend = ""
-envAppend = []
+def cmakeAppend = ""
+def compileAppend = ""
+def testAppend = ""
+def envAppend = []
 
-SPECS = [
+def SPECS = [
     'aix_ppc-64' : [
         'alias': 'aix',
         'label' : 'compile:aix',
@@ -341,7 +341,7 @@ SPECS = [
 ]
 
 def setBuildStatus(String message, String state, String sha) {
-    context = "continuous-integration/eclipse-omr/branch/" + buildSpec
+    def context = "continuous-integration/eclipse-omr/branch/" + buildSpec
     step([
         $class: "GitHubCommitStatusSetter",
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],

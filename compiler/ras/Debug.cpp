@@ -4466,13 +4466,13 @@ TR_Debug::dumpGlobalRegisterTable()
    }
 
 void
-TR_Debug::startTracingRegisterAssignment(const char *direction, TR_RegisterKinds kindsToAssign)
+TR_Debug::startTracingRegisterAssignment(TR_RegisterKinds kindsToAssign)
    {
    if (_file == NULL)
       return;
    if (!_comp->getOption(TR_TraceRA))
       return;
-   trfprintf(_file, "\n\n<regassign direction=\"%s\" method=\"%s\">\n", direction, jitdCurrentMethodSignature(_comp));
+   trfprintf(_file, "\n\n<regassign method=\"%s\">\n", jitdCurrentMethodSignature(_comp));
    trfprintf(_file, "<legend>\n"
                         "  V(F/T)   virtual register V with future use count F and total use count T\n"
                         "  V=R      V assigned to real register R\n"

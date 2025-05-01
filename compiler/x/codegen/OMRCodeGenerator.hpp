@@ -376,12 +376,6 @@ class OMR_EXTENSIBLE CodeGenerator : public OMR::CodeGenerator
    static TR_X86ProcessorInfo &getX86ProcessorInfo();
    static void initializeX86TargetProcessorInfo(bool force = false) { getX86ProcessorInfo().initialize(force); }
 
-   typedef enum
-      {
-      Backward = 0,
-      Forward  = 1
-      } RegisterAssignmentDirection;
-
    void doRegisterAssignment(TR_RegisterKinds kindsToAssign);
    void doBinaryEncoding();
 
@@ -434,12 +428,6 @@ class OMR_EXTENSIBLE CodeGenerator : public OMR::CodeGenerator
    TR::Register *doubleClobberEvaluate(TR::Node *node);
 
    const TR::X86LinkageProperties &getProperties() { return *_linkageProperties; }
-
-   RegisterAssignmentDirection getAssignmentDirection() {return _assignmentDirection;}
-   RegisterAssignmentDirection setAssignmentDirection(RegisterAssignmentDirection d)
-      {
-      return (_assignmentDirection = d);
-      }
 
    TR::RealRegister *getFrameRegister()                       {return _frameRegister;}
    TR::RealRegister *getMethodMetaDataRegister();
@@ -787,8 +775,6 @@ protected:
    TR::list<TR::ClobberingInstruction*>  _clobberingInstructions;
    std::list<TR::ClobberingInstruction*, TR::typed_allocator<TR::ClobberingInstruction*, TR::Allocator> >::iterator _clobIterator;
    TR::list<TR_OutlinedInstructions*>    _outlinedInstructionsList;
-
-   RegisterAssignmentDirection     _assignmentDirection;
 
    int32_t                         _instructionPatchAlignmentBoundary;
    int32_t                         _PicSlotCount;

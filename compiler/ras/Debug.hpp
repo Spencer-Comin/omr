@@ -606,8 +606,7 @@ public:
 
    virtual TR::Node     *verifyFinalNodeReferenceCounts(TR::ResolvedMethodSymbol *s);
 
-   virtual void startTracingRegisterAssignment() { startTracingRegisterAssignment("backward"); }
-   virtual void startTracingRegisterAssignment(const char *direction, TR_RegisterKinds kindsToAssign = TR_RegisterKinds(TR_GPR_Mask|TR_FPR_Mask));
+   virtual void startTracingRegisterAssignment(TR_RegisterKinds kindsToAssign = TR_RegisterKinds(TR_GPR_Mask|TR_FPR_Mask));
    virtual void         stopTracingRegisterAssignment();
    virtual void         pauseTracingRegisterAssignment();
    virtual void         resumeTracingRegisterAssignment();

@@ -3319,14 +3319,11 @@ void TR::X86RegMaskMemInstruction::assignRegisters(TR_RegisterKinds kindsToBeAss
       }
 
 #ifdef J9_PROJECT_SPECIFIC
-   if (kindsToBeAssigned & (TR_X87_Mask | TR_FPR_Mask | TR_VRF_Mask))
+   if (kindsToBeAssigned & (TR_FPR_Mask | TR_VRF_Mask))
       {
       TR::UnresolvedDataSnippet *snippet = getMemoryReference()->getUnresolvedDataSnippet();
       if (snippet)
          {
-         if (kindsToBeAssigned & TR_X87_Mask)
-            snippet->setNumLiveX87Registers(cg()->machine()->fpGetNumberOfLiveFPRs());
-
          if (kindsToBeAssigned & (TR_FPR_Mask | TR_VRF_Mask))
             snippet->setHasLiveXMMRegisters((cg()->machine()->fpGetNumberOfLiveXMMRs() > 0) ? true : false);
          }
@@ -3576,77 +3573,6 @@ TR::X86FPArithmeticRegRegInstruction::X86FPArithmeticRegRegInstruction(TR::Instr
 
 void TR::X86FPArithmeticRegRegInstruction::assignRegisters(TR_RegisterKinds kindsToBeAssigned)
    {
-
-   if (kindsToBeAssigned & TR_X87_Mask)
-      {
-      TR::Register *sourceRegister = getSourceRegister();
-      TR::Register *targetRegister = getTargetRegister();
-      TR::Machine *machine = cg()->machine();
-      uint32_t             result = 0;
-      TR::RealRegister      *fpReg;
-
-      result = TR::X86FPRegRegInstruction::assignTargetSourceRegisters();
-
-      TR_ASSERT( result & kSourceOnFPStack,
-              "TR::X86FPArithmeticRegRegInstruction::assignRegisters ==> source not on FP stack!" );
-
-      TR_ASSERT( result & kTargetOnFPStack,
-              "TR::X86FPArithmeticRegRegInstruction::assignRegisters ==> target not on FP stack!" );
-
-      //Dead tree elimination doesn't always eliminate dead trees and we can eventually pop the target as well, TODO: ensure proper stack balance.
-      //TR_ASSERT( !(result & kTargetCanBePopped),
-      //        "TR::X86FPArithmeticRegRegInstruction::assignRegisters ==> target register cannot be popped!" );
-
-      if (result & kSourceCanBePopped)
-         {
-         TR::InstOpCode::Mnemonic popOpCode;
-
-         if (!machine->isFPRTopOfStack(sourceRegister) &&
-              machine->isFPRTopOfStack(targetRegister))
-            {
-            // The target operand is already at TOS: generate a reverse and pop instruction.
-            //
-            TR::InstOpCode::Mnemonic reverseOpCode = machine->fpDetermineReverseOpCode(getOpCodeValue());
-            popOpCode = machine->fpDeterminePopOpCode(reverseOpCode);
-
-            (void)machine->fpStackFXCH(this->getPrev(), sourceRegister, false);
-
-            // don't exchange operands - they're virtual registers; the StackFXCH does the exchange
-            }
-         else
-            {
-            popOpCode = machine->fpDeterminePopOpCode(getOpCodeValue());
-            if (!machine->isFPRTopOfStack(sourceRegister))
-               {
-               (void)machine->fpStackFXCH(this->getPrev(), sourceRegister);
-               }
-            }
-
-         setOpCodeValue(popOpCode);
-         }
-      else
-         {
-         // Both operands are live after the instruction.
-         //
-         if ( !machine->isFPRTopOfStack(targetRegister) &&
-              !machine->isFPRTopOfStack(sourceRegister) )
-            {
-            (void)machine->fpStackFXCH(this->getPrev(), targetRegister);
-            }
-         }
-
-      // Final assignment of real registers to this instruction
-      //
-      fpReg = machine->fpMapToStackRelativeRegister(sourceRegister);
-      setSourceRegister(fpReg);
-      fpReg = machine->fpMapToStackRelativeRegister(targetRegister);
-      setTargetRegister(fpReg);
-
-      if (result & kSourceCanBePopped)
-         {
-         machine->fpStackPop();
-         }
-      }
    }
 
 
@@ -3811,22 +3737,6 @@ void TR::X86FPRemainderRegRegInstruction::assignRegisters(TR_RegisterKinds kinds
          accReg->setState(TR::RealRegister::Free);
          accReg->setAssignedRegister(NULL);
          }
-      }
-
-   else if (kindsToBeAssigned & TR_X87_Mask)
-      {
-      TR::Register    *sourceRegister = getSourceRegister();
-      TR::Register    *targetRegister = getTargetRegister();
-      TR::Machine *machine = cg()->machine();
-      TR::RealRegister *fpReg;
-
-      TR::X86FPRegRegInstruction::assignTargetSourceRegisters();
-      machine->fpCoerceRegistersToTopOfStack(this->getPrev(), targetRegister, sourceRegister, true);
-
-      fpReg = machine->fpMapToStackRelativeRegister(sourceRegister);
-      setSourceRegister(fpReg);
-      fpReg = machine->fpMapToStackRelativeRegister(targetRegister);
-      setTargetRegister(fpReg);
       }
    }
 

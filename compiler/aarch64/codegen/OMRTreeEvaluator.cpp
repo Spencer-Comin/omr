@@ -6124,6 +6124,9 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 static void
 reifyMemoryReference(TR::Node *node, TR::Register *targetReg, TR::MemoryReference *mr, TR::CodeGenerator *cg)
    {
+   if (mr->getUnresolvedSnippet() != NULL)
+      return;
+
    // TODO: this probably exists somewhere else
    TR::Register *baseReg = mr->getBaseRegister();
    TR::Register *indexReg = mr->getIndexRegister();

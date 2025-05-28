@@ -6164,7 +6164,7 @@ reifyMemoryReference(TR::Node *node, TR::Register *targetReg, TR::MemoryReferenc
       }
    }
 
-static TR::InstOpCode
+static TR::InstOpCode::Mnemonic
 getAcquireReleaseOpCode(TR::DataType type, bool isLoad)
    {
    switch (type)
@@ -6383,7 +6383,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       srcReg = cg->evaluate(valueChild);
       }
 
-   if (trySTLR && sym->sym->isAtLeastOrStrongerThanAcquireRelease())
+   if (trySTLR && sym->isAtLeastOrStrongerThanAcquireRelease())
       {
       TR::Register *addrReg = cg->allocateRegister();
 

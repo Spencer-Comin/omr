@@ -6121,11 +6121,13 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    return commonLoadEvaluator(node, op, size, tempReg, cg);
    }
 
-static void
-reifyMemoryReference(TR::Node *node, TR::Register *targetReg, TR::MemoryReference *mr, TR::CodeGenerator *cg)
+static TR::Register *
+reifyMemoryReference(TR::Node *node, TR::MemoryReference *mr, TR::CodeGenerator *cg)
    {
    if (mr->getUnresolvedSnippet() != NULL)
-      return;
+      return NULL;
+
+   TR::Register *targetReg = cg->allocateRegister();
 
    // TODO: this probably exists somewhere else
    TR::Register *baseReg = mr->getBaseRegister();
@@ -6165,6 +6167,8 @@ reifyMemoryReference(TR::Node *node, TR::Register *targetReg, TR::MemoryReferenc
          generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, targetReg, targetReg, offset);
          }
       }
+
+   return targetReg;
    }
 
 static TR::InstOpCode::Mnemonic
@@ -6190,11 +6194,9 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
 
-   if (needSync && tryLDAR)
+   TR::Register *addrReg;
+   if (needSync && tryLDAR && (addrReg = reifyMemoryReference(node, tempMR, cg)))
       {
-      TR::Register *addrReg = cg->allocateRegister();
-
-      reifyMemoryReference(node, addrReg, tempMR, cg);
       generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(node->getDataType(), true), node, targetReg, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0));
 
       cg->stopUsingRegister(addrReg);
@@ -6386,11 +6388,9 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       srcReg = cg->evaluate(valueChild);
       }
 
-   if (trySTLR && sym->isAtLeastOrStrongerThanAcquireRelease())
+   TR::Register *addrReg;
+   if (trySTLR && sym->isAtLeastOrStrongerThanAcquireRelease() && (addrReg = reifyMemoryReference(node, tempMR, cg)))
       {
-      TR::Register *addrReg = cg->allocateRegister();
-
-      reifyMemoryReference(node, addrReg, tempMR, cg);
       generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(node->getDataType(), false), node, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0), srcReg);
 
       cg->stopUsingRegister(addrReg);

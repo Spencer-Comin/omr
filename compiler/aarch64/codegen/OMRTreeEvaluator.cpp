@@ -6124,9 +6124,6 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 static TR::Register *
 reifyMemoryReference(TR::Node *node, TR::MemoryReference *mr, TR::CodeGenerator *cg)
    {
-   if (mr->getUnresolvedSnippet() != NULL)
-      return NULL;
-
    TR::Register *targetReg = cg->allocateRegister();
 
    // TODO: this probably exists somewhere else
@@ -6188,15 +6185,14 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    {
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
-   static const bool tryLDAR = (feGetEnv("TR_tryLDAR") != NULL);
 
    node->setRegister(targetReg);
    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
 
-   TR::Register *addrReg;
-   if (needSync && tryLDAR && (addrReg = reifyMemoryReference(node, tempMR, cg)))
+   if (needSync && tempMR->getUnresolvedSnippet() == NULL)
       {
+      TR::Register *addrReg = reifyMemoryReference(node, tempMR, cg);
       generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(node->getDataType(), true), node, targetReg, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0));
 
       cg->stopUsingRegister(addrReg);
@@ -6206,7 +6202,7 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
       generateTrg1MemInstruction(cg, op, node, targetReg, tempMR);
       }
 
-   if (needSync && !tryLDAR)
+   if (needSync && tempMR->getUnresolvedSnippet() != NULL)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
       }
@@ -6324,7 +6320,6 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
    tempMR->validateImmediateOffsetAlignment(node, size, cg);
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
    TR::Node *valueChild;
-   static const bool trySTLR = (feGetEnv("TR_trySTLR") != NULL);
 
    if (node->getOpCode().isIndirect())
       {
@@ -6335,7 +6330,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       valueChild = node->getFirstChild();
       }
 
-   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && !trySTLR)
+   if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && tempMR->getUnresolvedSnippet() != NULL)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishst);
       }
@@ -6388,9 +6383,9 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       srcReg = cg->evaluate(valueChild);
       }
 
-   TR::Register *addrReg;
-   if (trySTLR && sym->isAtLeastOrStrongerThanAcquireRelease() && (addrReg = reifyMemoryReference(node, tempMR, cg)))
+   if (sym->isAtLeastOrStrongerThanAcquireRelease() && tempMR->getUnresolvedSnippet() == NULL)
       {
+      TR::Register *addrReg = reifyMemoryReference(node, tempMR, cg);
       generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(node->getDataType(), false), node, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0), srcReg);
 
       cg->stopUsingRegister(addrReg);
@@ -6408,7 +6403,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
       cg->stopUsingRegister(srcReg);
       }
 
-   if (cg->comp()->target().isSMP() && sym->isVolatile() && !trySTLR)
+   if (cg->comp()->target().isSMP() && sym->isVolatile() && tempMR->getUnresolvedSnippet() != NULL)
       {
       generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ish);
       }

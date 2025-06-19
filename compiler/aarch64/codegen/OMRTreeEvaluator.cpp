@@ -6169,7 +6169,7 @@ reifyMemoryReference(TR::Node *node, TR::MemoryReference *mr, TR::CodeGenerator 
    }
 
 static TR::InstOpCode::Mnemonic
-getAcquireReleaseOpCode(TR::DataType type, bool isLoad)
+getAcquireReleaseOpCode(TR::DataType type, bool isLoad, bool compressed)
    {
    switch (type)
       {
@@ -6177,6 +6177,12 @@ getAcquireReleaseOpCode(TR::DataType type, bool isLoad)
       case TR::Int32: return isLoad ? TR::InstOpCode::ldarw : TR::InstOpCode::stlrw;
       case TR::Int16: return isLoad ? TR::InstOpCode::ldarh : TR::InstOpCode::stlrh;
       case TR::Int8:  return isLoad ? TR::InstOpCode::ldarb : TR::InstOpCode::stlrb;
+      case TR::Address:
+         if (compressed)
+            return isLoad ? TR::InstOpCode::ldarw : TR::InstOpCode::stlrw;
+         else
+            return isLoad ? TR::InstOpCode::ldarx : TR::InstOpCode::stlrx;
+
       default: TR_ASSERT_FATAL(false, "Unrecognized type (%s) for getAcquireReleaseOpCode", TR::DataType::getName(type));
       }
    }
@@ -6193,7 +6199,7 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    if (needSync && tempMR->getUnresolvedSnippet() == NULL)
       {
       TR::Register *addrReg = reifyMemoryReference(node, tempMR, cg);
-      generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(node->getDataType(), true), node, targetReg, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0));
+      generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(node->getDataType(), true, cg->comp()->useCompressedPointers()), node, targetReg, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0));
 
       cg->stopUsingRegister(addrReg);
       }
@@ -6386,7 +6392,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
    if (sym->isAtLeastOrStrongerThanAcquireRelease() && tempMR->getUnresolvedSnippet() == NULL)
       {
       TR::Register *addrReg = reifyMemoryReference(node, tempMR, cg);
-      generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(node->getDataType(), false), node, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0), srcReg);
+      generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(node->getDataType(), false, cg->comp()->useCompressedPointers()), node, TR::MemoryReference::createWithDisplacement(cg, addrReg, 0), srcReg);
 
       cg->stopUsingRegister(addrReg);
       }

@@ -6146,27 +6146,6 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
    return commonLoadEvaluator(node, op, size, tempReg, cg);
    }
 
-static TR::InstOpCode::Mnemonic
-getAcquireReleaseOpCode(TR::DataType type, bool isLoad, bool isCompressed)
-   {
-   switch (type)
-      {
-      case TR::Double:
-      case TR::Int64: return isLoad ? TR::InstOpCode::ldarx : TR::InstOpCode::stlrx;
-      case TR::Float:
-      case TR::Int32: return isLoad ? TR::InstOpCode::ldarw : TR::InstOpCode::stlrw;
-      case TR::Int16: return isLoad ? TR::InstOpCode::ldarh : TR::InstOpCode::stlrh;
-      case TR::Int8:  return isLoad ? TR::InstOpCode::ldarb : TR::InstOpCode::stlrb;
-      case TR::Address:
-         if (isCompressed)
-            return isLoad ? TR::InstOpCode::ldarw : TR::InstOpCode::stlrw;
-         else
-            return isLoad ? TR::InstOpCode::ldarx : TR::InstOpCode::stlrx;
-
-      default: TR_ASSERT_FATAL(false, "Unrecognized type (%s) for getAcquireReleaseOpCode", TR::DataType::getName(type));
-      }
-   }
-
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg, TR::CodeGenerator *cg)
    {
    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
@@ -6178,26 +6157,36 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 
    if (needSync && tempMR->getUnresolvedSnippet() == NULL)
       {
-      tempMR->consolidateRegisters(node, cg);
-      TR::DataType dataType = node->getDataType();
+      TR_ASSERT_FATAL_WITH_NODE(node, (size==1) || (size==2) || (size==4) || (size==8), "operand size for ldar must be 1, 2, 4, or 8 bytes");
+      int numberOfBytesLog2 = trailingZeroes(size);
+
+      static const TR::InstOpCode::Mnemonic ldarOpCodes[] =
+         {
+         TR::InstOpCode::ldarb,
+         TR::InstOpCode::ldarh,
+         TR::InstOpCode::ldarw,
+         TR::InstOpCode::ldarx
+         };
+
+      tempMR->consolidateRegisters(NULL, cg);
 
       TR::Register *targetGPR = targetReg;
-      if (dataType.isFloatingPoint())
+      if (targetReg->getKind() != TR_GPR)
          {
          // ldar only operates on GPRs, so we need to load into a GPR then shuffle into targetReg
          targetGPR = cg->allocateRegister();
          }
 
-      generateTrg1MemInstruction(cg, getAcquireReleaseOpCode(dataType, true, cg->comp()->useCompressedPointers()), node, targetGPR, tempMR);
+      generateTrg1MemInstruction(cg, ldarOpCodes[numberOfBytesLog2], node, targetGPR, tempMR);
 
-      if (dataType.isFloatingPoint())
+      if (targetReg->getKind() != TR_GPR)
          {
-         generateTrg1Src1Instruction(cg, dataType.isFloat() ? TR::InstOpCode::fmov_wtos : TR::InstOpCode::fmov_xtod, node, targetGPR, targetReg);
+         generateTrg1Src1Instruction(cg, targetReg->isSinglePrecision() ? TR::InstOpCode::fmov_wtos : TR::InstOpCode::fmov_xtod, node, targetGPR, targetReg);
          cg->stopUsingRegister(targetGPR);
          }
       else if (node->isSignExtendedAtSource())
          {
-         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::sbfmx, node, targetReg, targetReg, TR::DataType::getSize(dataType)*8 - 1);
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::sbfmx, node, targetReg, targetReg, size*8 - 1);
          }
       }
    else
@@ -6388,20 +6377,30 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
 
    if (sym->isAtLeastOrStrongerThanAcquireRelease() && tempMR->getUnresolvedSnippet() == NULL)
       {
-      tempMR->consolidateRegisters(node, cg);
-      TR::DataType dataType = node->getDataType();
+      TR_ASSERT_FATAL_WITH_NODE(node, (size==1) || (size==2) || (size==4) || (size==8), "operand size for stlr must be 1, 2, 4, or 8 bytes");
+      int numberOfBytesLog2 = trailingZeroes(size);
+
+      static const TR::InstOpCode::Mnemonic stlrOpCodes[] =
+         {
+         TR::InstOpCode::stlrb,
+         TR::InstOpCode::stlrh,
+         TR::InstOpCode::stlrw,
+         TR::InstOpCode::stlrx
+         };
+
+      tempMR->consolidateRegisters(NULL, cg);
 
       TR::Register *srcGPR = srcReg;
-      if (dataType.isFloatingPoint())
+      if (srcReg->getKind() != TR_GPR)
          {
          // stlr only operates on GPRs, so we need to shuffle srcReg into a GPR before store
          srcGPR = cg->allocateRegister();
-         generateTrg1Src1Instruction(cg, dataType.isFloat() ? TR::InstOpCode::fmov_stow : TR::InstOpCode::fmov_dtox, node, srcGPR, srcReg);
+         generateTrg1Src1Instruction(cg, srcReg->isSinglePrecision() ? TR::InstOpCode::fmov_stow : TR::InstOpCode::fmov_dtox, node, srcGPR, srcReg);
          }
 
-      generateMemSrc1Instruction(cg, getAcquireReleaseOpCode(dataType, false, cg->comp()->useCompressedPointers()), node, tempMR, srcGPR);
+      generateMemSrc1Instruction(cg, stlrOpCodes[numberOfBytesLog2], node, tempMR, srcGPR);
 
-      if (dataType.isFloatingPoint())
+      if (srcReg->getKind() != TR_GPR)
          {
          cg->stopUsingRegister(srcGPR);
          }

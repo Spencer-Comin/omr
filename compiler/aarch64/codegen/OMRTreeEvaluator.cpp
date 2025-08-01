@@ -6168,7 +6168,7 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
          TR::InstOpCode::ldarx
          };
 
-      tempMR->consolidateRegisters(NULL, cg);
+      tempMR->normalize(node, cg);
 
       TR::Register *targetGPR = targetReg;
       if (targetReg->getKind() != TR_GPR)
@@ -6388,7 +6388,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
          TR::InstOpCode::stlrx
          };
 
-      tempMR->consolidateRegisters(NULL, cg);
+      tempMR->normalize(node, cg);
 
       TR::Register *srcGPR = srcReg;
       if (srcReg->getKind() != TR_GPR)

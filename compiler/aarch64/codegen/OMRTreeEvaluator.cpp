@@ -6169,6 +6169,13 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
          };
 
       tempMR->normalize(node, cg);
+      intptr_t offset = tempMR->getOffset();
+      if (offset != 0)
+         {
+         TR::Register *baseReg = tempMR->getBaseRegister();
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, baseReg, baseReg, offset);
+         tempMR->setOffset(0);
+         }
 
       TR::Register *targetGPR = targetReg;
       if (targetReg->getKind() != TR_GPR)
@@ -6389,6 +6396,13 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
          };
 
       tempMR->normalize(node, cg);
+      intptr_t offset = tempMR->getOffset();
+      if (offset != 0)
+         {
+         TR::Register *baseReg = tempMR->getBaseRegister();
+         generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, baseReg, baseReg, offset);
+         tempMR->setOffset(0);
+         }
 
       TR::Register *srcGPR = srcReg;
       if (srcReg->getKind() != TR_GPR)

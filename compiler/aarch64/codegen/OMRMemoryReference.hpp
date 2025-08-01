@@ -566,6 +566,13 @@ class OMR_EXTENSIBLE MemoryReference : public OMR::MemoryReference
     */
    void validateImmediateOffsetAlignment(TR::Node *node, uint32_t alignment, TR::CodeGenerator *cg);
 
+   /**
+    * @brief Normalizes the memory reference so that it can be encoded into instruction.
+    * @param[in] node: node
+    * @param[in] cg: CodeGenerator
+    */
+   void normalize(TR::Node *node, TR::CodeGenerator *cg);
+
    private:
 
    /**
@@ -574,13 +581,6 @@ class OMR_EXTENSIBLE MemoryReference : public OMR::MemoryReference
     * @param[in] cg: CodeGenerator
     */
    void moveIndexToBase(TR::Node *node, TR::CodeGenerator *cg);
-
-   /**
-    * @brief Normalizes the memory reference so that it can be encoded into instruction.
-    * @param[in] node: node
-    * @param[in] cg: CodeGenerator
-    */
-   void normalize(TR::Node *node, TR::CodeGenerator *cg);
    };
 
 } // ARM64

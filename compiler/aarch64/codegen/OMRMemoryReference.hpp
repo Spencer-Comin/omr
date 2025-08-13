@@ -535,6 +535,13 @@ public:
      */
     void validateImmediateOffsetAlignment(TR::Node *node, uint32_t alignment, TR::CodeGenerator *cg);
 
+    /**
+     * @brief Normalizes the memory reference so that it can be encoded into instruction.
+     * @param[in] node: node
+     * @param[in] cg: CodeGenerator
+     */
+    void normalize(TR::Node *node, TR::CodeGenerator *cg);
+
 private:
     /**
      * @brief Moves index register and node to base register and node.
@@ -542,13 +549,6 @@ private:
      * @param[in] cg: CodeGenerator
      */
     void moveIndexToBase(TR::Node *node, TR::CodeGenerator *cg);
-
-    /**
-     * @brief Normalizes the memory reference so that it can be encoded into instruction.
-     * @param[in] node: node
-     * @param[in] cg: CodeGenerator
-     */
-    void normalize(TR::Node *node, TR::CodeGenerator *cg);
 };
 
 }} // namespace OMR::ARM64

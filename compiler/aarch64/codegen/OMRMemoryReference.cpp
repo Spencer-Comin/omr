@@ -355,11 +355,17 @@ void OMR::ARM64::MemoryReference::normalize(TR::Node *node, TR::CodeGenerator *c
         return;
     }
 
+    TR_ASSERT_FATAL((self()->getOffset() == 0) || (_indexRegister == NULL),
+        "_indexRegister must be NULL if displacement is not zero");
+
+    self()->moveOffsetToBase(node, cg);
+}
+
+void OMR::ARM64::MemoryReference::moveOffsetToBase(TR::Node *node, TR::CodeGenerator *cg)
+{
     intptr_t displacement = self()->getOffset();
 
     if (displacement != 0) {
-        TR_ASSERT_FATAL(_indexRegister == NULL, "_indexRegister must be NULL if displacement is not zero");
-
         if (!constantIsImm9(displacement)) {
             TR::Register *newBase;
 
@@ -402,6 +408,12 @@ void OMR::ARM64::MemoryReference::normalize(TR::Node *node, TR::CodeGenerator *c
             }
         }
     }
+}
+
+void OMR::ARM64::MemoryReference::simplify(TR::Node *node, TR::CodeGenerator *cg)
+{
+    self()->moveIndexToBase(node, cg);
+    self()->moveOffsetToBase(node, cg);
 }
 
 void OMR::ARM64::MemoryReference::addToOffset(TR::Node *node, intptr_t amount, TR::CodeGenerator *cg)

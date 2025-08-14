@@ -5533,7 +5533,7 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
         static const TR::InstOpCode::Mnemonic ldarOpCodes[]
             = { TR::InstOpCode::ldarb, TR::InstOpCode::ldarh, TR::InstOpCode::ldarw, TR::InstOpCode::ldarx };
 
-        tempMR->normalize(node, cg);
+        tempMR->simplify(node, cg);
         TR_ASSERT_FATAL(tempMR->getOffset() == 0, "ldar does not support offset");
         TR_ASSERT_FATAL(tempMR->getIndexRegister() == NULL, "ldar does not support index register");
 
@@ -5724,7 +5724,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
         static const TR::InstOpCode::Mnemonic stlrOpCodes[]
             = { TR::InstOpCode::stlrb, TR::InstOpCode::stlrh, TR::InstOpCode::stlrw, TR::InstOpCode::stlrx };
 
-        tempMR->normalize(node, cg);
+        tempMR->simplify(node, cg);
         TR_ASSERT_FATAL(tempMR->getOffset() == 0, "stlr does not support offset");
         TR_ASSERT_FATAL(tempMR->getIndexRegister() == NULL, "stlr does not support index register");
 

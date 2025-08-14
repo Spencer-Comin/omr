@@ -5534,6 +5534,8 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
             = { TR::InstOpCode::ldarb, TR::InstOpCode::ldarh, TR::InstOpCode::ldarw, TR::InstOpCode::ldarx };
 
         tempMR->normalize(node, cg);
+        TR_ASSERT_FATAL(tempMR->getOffset() == 0, "ldar does not support offset");
+        TR_ASSERT_FATAL(tempMR->getIndexRegister() == NULL, "ldar does not support index register");
 
         TR::Register *targetGPR = targetReg;
         if (targetReg->getKind() != TR_GPR) {
@@ -5723,6 +5725,8 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
             = { TR::InstOpCode::stlrb, TR::InstOpCode::stlrh, TR::InstOpCode::stlrw, TR::InstOpCode::stlrx };
 
         tempMR->normalize(node, cg);
+        TR_ASSERT_FATAL(tempMR->getOffset() == 0, "stlr does not support offset");
+        TR_ASSERT_FATAL(tempMR->getIndexRegister() == NULL, "stlr does not support index register");
 
         TR::Register *srcGPR = srcReg;
         if (srcReg->getKind() != TR_GPR) {
@@ -7243,9 +7247,9 @@ TR::Register *OMR::ARM64::TreeEvaluator::aRegLoadEvaluator(TR::Node *node, TR::C
             if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                 globalReg->setContainsInternalPointer();
                 globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                        ->getSymbol()
-                        ->castToInternalPointerAutoSymbol()
-                        ->getPinningArrayPointer());
+                                                      ->getSymbol()
+                                                      ->castToInternalPointerAutoSymbol()
+                                                      ->getPinningArrayPointer());
             }
         } else {
             globalReg = cg->allocateCollectedReferenceRegister();

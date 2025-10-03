@@ -1417,7 +1417,7 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
     { "ignoreIEEE", "O\tallow non-IEEE compliant optimizations", SET_OPTION_BIT(TR_IgnoreIEEERestrictions), "F" },
 #ifdef DEBUG
     { "ignoreUnimp", "D\tdo not fail compilation for unimplemented opcodes", TR::Options::setDebug,
-     (intptr_t) "continueWithUnimplementedOpCode" },
+     (intptr_t)"continueWithUnimplementedOpCode" },
 #endif
     { "immediateCountingRecompilation", "D\tRecompile GCR methods as soon as possible",
      SET_OPTION_BIT(TR_ImmediateCountingRecompilation), "F", NOT_IN_SUBSET },
@@ -1620,7 +1620,7 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
 
 #ifdef DEBUG
     { "noExceptions", "C\tfail compilation for methods with exceptions", TR::Options::setDebug,
-     (intptr_t) "noExceptions" },
+     (intptr_t)"noExceptions" },
 #endif
     { "noIProfilerDuringStartupPhase", "R\tturn off iprofiler during first startup phase",
      SET_OPTION_BIT(TR_NoIProfilerDuringStartupPhase), "F", NOT_IN_SUBSET },
@@ -3554,12 +3554,12 @@ void OMR::Options::shutdown(TR_FrontEnd *fe)
         if (TR::Options::getAOTCmdLineOptions()) {
             TR::OptionSet *optionSet, *prev;
             for (optionSet = TR::Options::getAOTCmdLineOptions()->_optionSets; optionSet;
-                 optionSet = optionSet->getNext()) {
+                optionSet = optionSet->getNext()) {
                 TR::FILE *logFile = optionSet->getOptions()->getLogFile();
                 if (logFile == NULL || logFile == TR::Options::getAOTCmdLineOptions()->getLogFile())
                     continue;
                 for (prev = TR::Options::getAOTCmdLineOptions()->_optionSets; prev != optionSet;
-                     prev = prev->getNext()) {
+                    prev = prev->getNext()) {
                     if (prev->getOptions()->getLogFile() == logFile) {
                         logFile = NULL;
                         break;
@@ -3582,7 +3582,7 @@ void OMR::Options::shutdown(TR_FrontEnd *fe)
                         TR::OptionSet *aotOptionSet;
 
                         for (aotOptionSet = TR::Options::getAOTCmdLineOptions()->_optionSets; aotOptionSet;
-                             aotOptionSet = aotOptionSet->getNext()) {
+                            aotOptionSet = aotOptionSet->getNext()) {
                             TR::FILE *aotLogFile = aotOptionSet->getOptions()->getLogFile();
                             if (aotLogFile == logFile) {
                                 logFile = NULL;
@@ -3596,12 +3596,12 @@ void OMR::Options::shutdown(TR_FrontEnd *fe)
                 }
             }
             for (optionSet = TR::Options::getJITCmdLineOptions()->_optionSets; optionSet;
-                 optionSet = optionSet->getNext()) {
+                optionSet = optionSet->getNext()) {
                 TR::FILE *logFile = optionSet->getOptions()->getLogFile();
                 if (logFile == NULL || logFile == TR::Options::getJITCmdLineOptions()->getLogFile())
                     continue;
                 for (prev = TR::Options::getJITCmdLineOptions()->_optionSets; prev != optionSet;
-                     prev = prev->getNext()) {
+                    prev = prev->getNext()) {
                     if (prev->getOptions()->getLogFile() == logFile) {
                         logFile = NULL;
                         break;
@@ -3614,7 +3614,7 @@ void OMR::Options::shutdown(TR_FrontEnd *fe)
                         continue;
                     }
                     for (aotOptionSet = TR::Options::getAOTCmdLineOptions()->_optionSets; aotOptionSet;
-                         aotOptionSet = aotOptionSet->getNext()) {
+                        aotOptionSet = aotOptionSet->getNext()) {
                         TR::FILE *aotLogFile = aotOptionSet->getOptions()->getLogFile();
                         if (aotLogFile == logFile) {
                             logFile = NULL;
@@ -3780,7 +3780,7 @@ void OMR::Options::setOptionInAllOptionSets(uint32_t mask, bool b)
         TR::Options::getAOTCmdLineOptions()->setOption(mask, b);
         TR::OptionSet *optionSet;
         for (optionSet = TR::Options::getAOTCmdLineOptions()->getFirstOptionSet(); optionSet;
-             optionSet = optionSet->getNext()) {
+            optionSet = optionSet->getNext()) {
             optionSet->getOptions()->setOption(mask, b);
         }
     }
@@ -3789,7 +3789,7 @@ void OMR::Options::setOptionInAllOptionSets(uint32_t mask, bool b)
         TR::Options::getJITCmdLineOptions()->setOption(mask, b);
         TR::OptionSet *optionSet;
         for (optionSet = TR::Options::getJITCmdLineOptions()->getFirstOptionSet(); optionSet;
-             optionSet = optionSet->getNext()) {
+            optionSet = optionSet->getNext()) {
             optionSet->getOptions()->setOption(mask, b);
         }
     }
@@ -5670,6 +5670,10 @@ void OMR::Options::setConservativeDefaultBehavior()
 
 void OMR::Options::setAggressiveThroughput()
 {
+    static const bool disableSetAggressiveThroughput = feGetEnv("TR_DisableSetAggressiveThroughput") != NULL;
+    if (disableSetAggressiveThroughput)
+        return;
+
     self()->setOption(
         TR_DontDowngradeToCold); // This will prevent AOT compilations as well, unless -Xaot:forceaot is present
     self()->setOption(TR_DisableSelectiveNoOptServer);

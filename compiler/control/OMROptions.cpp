@@ -5678,8 +5678,15 @@ void OMR::Options::setAggressiveThroughput()
         TR_DontDowngradeToCold); // This will prevent AOT compilations as well, unless -Xaot:forceaot is present
     self()->setOption(TR_DisableSelectiveNoOptServer);
 #ifdef J9_PROJECT_SPECIFIC
-    TR::Options::_scorchingSampleThreshold = 500; // 6% CPU
-    TR::Options::_veryHotSampleThreshold = 1000; // 3% CPU
+    static const bool halveAggressiveThroughputSampleThresholds
+        = feGetEnv("TR_HalveAggressiveThroughputSampleThresholds") != NULL;
+    if (halveAggressiveThroughputSampleThresholds) {
+        TR::Options::_scorchingSampleThreshold = 250; // 12% CPU
+        TR::Options::_veryHotSampleThreshold = 500; // 6% CPU
+    } else {
+        TR::Options::_scorchingSampleThreshold = 500; // 6% CPU
+        TR::Options::_veryHotSampleThreshold = 1000; // 3% CPU
+    }
 
     /**
      * Certain optimizations may work against overall throughput goals because

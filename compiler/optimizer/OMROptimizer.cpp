@@ -885,8 +885,17 @@ OMR::Optimizer::Optimizer(TR::Compilation *comp, TR::ResolvedMethodSymbol *metho
         TR::OptimizationManager(self(), NULL, OMR::loopCanonicalizationGroup, loopCanonicalizationOpts);
     _opts[OMR::loopVersionerGroup]
         = new (comp->allocator()) TR::OptimizationManager(self(), NULL, OMR::loopVersionerGroup, loopVersionerOpts);
-    _opts[OMR::lastLoopVersionerGroup] = new (comp->allocator())
-        TR::OptimizationManager(self(), NULL, OMR::lastLoopVersionerGroup, lastLoopVersionerOpts);
+
+    static const bool nopLastLoopVersionerGroup = feGetEnv("TR_NOPLastLoopVersionerGroup") != NULL;
+
+    if (nopLastLoopVersionerGroup) {
+        _opts[OMR::lastLoopVersionerGroup] = new (comp->allocator())
+            TR::OptimizationManager(self(), NULL, OMR::lastLoopVersionerGroup, omrNoOptStrategyOpts);
+    } else {
+        _opts[OMR::lastLoopVersionerGroup] = new (comp->allocator())
+            TR::OptimizationManager(self(), NULL, OMR::lastLoopVersionerGroup, lastLoopVersionerOpts);
+    }
+
     _opts[OMR::methodHandleInvokeInliningGroup] = new (comp->allocator())
         TR::OptimizationManager(self(), NULL, OMR::methodHandleInvokeInliningGroup, methodHandleInvokeInliningOpts);
     _opts[OMR::earlyGlobalGroup]

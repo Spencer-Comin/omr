@@ -341,8 +341,6 @@ public:
          *  The data type of \c <value> indicates the width of the operation.
          */
         atomicFetchAndAddSymbol,
-        atomicFetchAndAdd32BitSymbol,
-        atomicFetchAndAdd64BitSymbol,
 
         /** \brief
          *
@@ -365,8 +363,6 @@ public:
          *  The data type of \c <value> indicates the width of the operation.
          */
         atomicSwapSymbol,
-        atomicSwap32BitSymbol,
-        atomicSwap64BitSymbol,
 
         /** \brief
          *

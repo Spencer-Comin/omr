@@ -7101,29 +7101,9 @@ bool OMR::Power::CodeGenerator::inlineDirectCall(TR::Node *node, TR::Register *&
             isLong = !node->getChild(1)->getDataType().isInt32();
             isGetThenUpdate = true;
             doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
-            isAddOp = true;
-            isLong = false;
-            isGetThenUpdate = true;
-            doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
-            isAddOp = true;
-            isLong = true;
-            isGetThenUpdate = true;
-            doInline = true;
         } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
             isAddOp = false;
             isLong = !node->getChild(1)->getDataType().isInt32();
-            isGetThenUpdate = true;
-            doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap32BitSymbol)) {
-            isAddOp = false;
-            isLong = false;
-            isGetThenUpdate = true;
-            doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap64BitSymbol)) {
-            isAddOp = false;
-            isLong = true;
             isGetThenUpdate = true;
             doInline = true;
         }

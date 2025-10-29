@@ -1358,16 +1358,8 @@ const char *TR_Debug::getName(TR::SymbolReference *symRef)
                 return "<atomicAdd>";
             case TR::SymbolReferenceTable::atomicFetchAndAddSymbol:
                 return "<atomicFetchAndAdd>";
-            case TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol:
-                return "<atomicFetchAndAdd32Bit>";
-            case TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol:
-                return "<atomicFetchAndAdd64Bit>";
             case TR::SymbolReferenceTable::atomicSwapSymbol:
                 return "<atomicSwap>";
-            case TR::SymbolReferenceTable::atomicSwap32BitSymbol:
-                return "<atomicSwap32Bit>";
-            case TR::SymbolReferenceTable::atomicSwap64BitSymbol:
-                return "<atomicSwap64Bit>";
             case TR::SymbolReferenceTable::atomicCompareAndSwapReturnStatusSymbol:
                 return "<atomicCompareAndSwapReturnStatus>";
             case TR::SymbolReferenceTable::atomicCompareAndSwapReturnValueSymbol:
@@ -1753,8 +1745,7 @@ static const char *commonNonhelperSymbolNames[] = { "<contiguousArraySize>", "<d
     "<instanceShapeFromROMClass>", "<objectEqualityComparison>", "<objectInequalityComparison>",
     "<nonNullableArrayNullStoreCheck>", "<loadFlattenableArrayElementNonHelper>",
     "<storeFlattenableArrayElementNonHelper>", "<isIdentityObject>", "<synchronizedFieldLoad>", "<atomicAdd>",
-    "<atomicFetchAndAdd>", "<atomicFetchAndAdd32Bit>", "<atomicFetchAndAdd64Bit>", "<atomicSwap>", "<atomicSwap32Bit>",
-    "<atomicSwap64Bit>", "<atomicCompareAndSwapReturnStatus>", "<atomicCompareAndSwapReturnValue>",
+    "<atomicFetchAndAdd>", "<atomicSwap>", "<atomicCompareAndSwapReturnStatus>", "<atomicCompareAndSwapReturnValue>",
     "<jProfileValueSymbol>", "<jProfileValueWithNullCHKSymbol>", "<j9VMThreadTempSlotField>",
     "<computedStaticCallSymbol>", "<j9VMThreadFloatTemp1>", "<J9JNIMethodIDvTableIndexFieldSymbol>", "<defaultValue>",
     "<jitDispatchJ9Method>" };
@@ -1809,7 +1800,7 @@ const char *TR_Debug::getShadowName(TR::SymbolReference *symRef)
         "commonNonhelperSymbolNames array must match CommonNonhelperSymbol enumeration");
 
     for (int32_t i = TR::SymbolReferenceTable::firstCommonNonhelperNonArrayShadowSymbol;
-         i < _comp->getSymRefTab()->getLastCommonNonhelperSymbol(); i++) {
+        i < _comp->getSymRefTab()->getLastCommonNonhelperSymbol(); i++) {
         TR::SymbolReference *other = _comp->getSymRefTab()->element((TR::SymbolReferenceTable::CommonNonhelperSymbol)i);
         if (other && other->getSymbol() == symRef->getSymbol())
             return commonNonhelperSymbolNames[i - TR::SymbolReferenceTable::firstCommonNonhelperNonArrayShadowSymbol];
@@ -2663,7 +2654,7 @@ void TR_Debug::print(OMR::Logger *log, TR::GCStackAtlas *atlas)
     // Print the map for spill temps
     //
     for (auto temps = _comp->cg()->getCollectedSpillList().begin(); temps != _comp->cg()->getCollectedSpillList().end();
-         ++temps) {
+        ++temps) {
         TR::AutomaticSymbol *s = (*temps)->getSymbolReference()->getSymbol()->getAutoSymbol();
         print(log, s, true);
     }

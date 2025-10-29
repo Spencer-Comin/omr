@@ -489,7 +489,7 @@ void OMR::X86::TreeEvaluator::removeLiveDiscardableStatics(TR::CodeGenerator *cg
 
     TR::Compilation *comp = cg->comp();
     for (auto iterator = cg->getLiveDiscardableRegisters().begin();
-         iterator != cg->getLiveDiscardableRegisters().end();) {
+        iterator != cg->getLiveDiscardableRegisters().end();) {
         if ((*iterator)->getRematerializationInfo()->isRematerializableFromMemory()
             && (*iterator)->getRematerializationInfo()->getSymbolReference()->getSymbol()->isStatic()) {
             TR::Register *regCursor = *iterator;
@@ -4176,21 +4176,65 @@ TR::Register *OMR::X86::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::C
     if (SymRef && SymRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
         TR::InstOpCode::Mnemonic op = TR::InstOpCode::bad;
 
+        static const TR::InstOpCode::Mnemonic addAndFetchOps[] = { TR::InstOpCode::LXADD1MemReg,
+            TR::InstOpCode::LXADD2MemReg, TR::InstOpCode::LXADD4MemReg, TR::InstOpCode::LXADD8MemReg };
+        static const TR::InstOpCode::Mnemonic swapOps[] = { TR::InstOpCode::XCHG1MemReg, TR::InstOpCode::XCHG2MemReg,
+            TR::InstOpCode::XCHG4MemReg, TR::InstOpCode::XCHG8MemReg };
+
         if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
-            op = node->getChild(1)->getDataType().isInt32() ? TR::InstOpCode::LADD4MemReg : TR::InstOpCode::LADD8MemReg;
+            switch (node->getChild(1)->getDataType()) {
+                case TR::Int8:
+                    op = TR::InstOpCode::LADD1MemReg;
+                    break;
+                case TR::Int16:
+                    op = TR::InstOpCode::LADD2MemReg;
+                    break;
+                case TR::Int32:
+                    op = TR::InstOpCode::LADD4MemReg;
+                    break;
+                case TR::Int64:
+                    op = TR::InstOpCode::LADD8MemReg;
+                    break;
+
+                default:
+                    TR_ASSERT_FATAL(false, "unsupported data type for atomicAddSymbol");
+            }
         } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAddSymbol)) {
-            op = node->getChild(1)->getDataType().isInt32() ? TR::InstOpCode::LXADD4MemReg
-                                                            : TR::InstOpCode::LXADD8MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
-            op = TR::InstOpCode::LXADD4MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
-            op = TR::InstOpCode::LXADD8MemReg;
+            switch (node->getChild(1)->getDataType()) {
+                case TR::Int8:
+                    op = TR::InstOpCode::LXADD1MemReg;
+                    break;
+                case TR::Int16:
+                    op = TR::InstOpCode::LXADD2MemReg;
+                    break;
+                case TR::Int32:
+                    op = TR::InstOpCode::LXADD4MemReg;
+                    break;
+                case TR::Int64:
+                    op = TR::InstOpCode::LXADD8MemReg;
+                    break;
+
+                default:
+                    TR_ASSERT_FATAL(false, "unsupported data type for atomicFetchAndAddSymbol");
+            }
         } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
-            op = node->getChild(1)->getDataType().isInt32() ? TR::InstOpCode::XCHG4MemReg : TR::InstOpCode::XCHG8MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicSwap32BitSymbol)) {
-            op = TR::InstOpCode::XCHG4MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicSwap64BitSymbol)) {
-            op = TR::InstOpCode::XCHG8MemReg;
+            switch (node->getChild(1)->getDataType()) {
+                case TR::Int8:
+                    op = TR::InstOpCode::XCHG1MemReg;
+                    break;
+                case TR::Int16:
+                    op = TR::InstOpCode::XCHG2MemReg;
+                    break;
+                case TR::Int32:
+                    op = TR::InstOpCode::XCHG4MemReg;
+                    break;
+                case TR::Int64:
+                    op = TR::InstOpCode::XCHG8MemReg;
+                    break;
+
+                default:
+                    TR_ASSERT_FATAL(false, "unsupported data type for atomicSwapSymbol");
+            }
         }
 
         if (op != TR::InstOpCode::bad) {
@@ -4331,18 +4375,18 @@ TR::Register *OMR::X86::TreeEvaluator::aRegLoadEvaluator(TR::Node *node, TR::Cod
             if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                 globalReg->setContainsInternalPointer();
                 globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                                                      ->getSymbol()
-                                                      ->castToInternalPointerAutoSymbol()
-                                                      ->getPinningArrayPointer());
+                        ->getSymbol()
+                        ->castToInternalPointerAutoSymbol()
+                        ->getPinningArrayPointer());
             }
         } else {
             if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                 globalReg = cg->allocateRegister();
                 globalReg->setContainsInternalPointer();
                 globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                                                      ->getSymbol()
-                                                      ->castToInternalPointerAutoSymbol()
-                                                      ->getPinningArrayPointer());
+                        ->getSymbol()
+                        ->castToInternalPointerAutoSymbol()
+                        ->getPinningArrayPointer());
             } else
                 globalReg = cg->allocateCollectedReferenceRegister();
         }

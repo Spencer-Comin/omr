@@ -6292,13 +6292,13 @@ TR::Register *OMR::Z::TreeEvaluator::addressCastEvaluator(TR::Node *node, TR::Co
                 return TR::TreeEvaluator::extendCastEvaluator<false, 31, 64>(node, cg);
                 break;
             case 24:
-                return TR::TreeEvaluator::extendCastEvaluator < false, 24, (otherSize > 32) ? 64 : 32 > (node, cg);
+                return TR::TreeEvaluator::extendCastEvaluator<false, 24, (otherSize > 32) ? 64 : 32>(node, cg);
                 break;
             case 16:
-                return TR::TreeEvaluator::extendCastEvaluator < false, 16, (otherSize > 32) ? 64 : 32 > (node, cg);
+                return TR::TreeEvaluator::extendCastEvaluator<false, 16, (otherSize > 32) ? 64 : 32>(node, cg);
                 break;
             case 8:
-                return TR::TreeEvaluator::extendCastEvaluator < false, 8, (otherSize > 32) ? 64 : 32 > (node, cg);
+                return TR::TreeEvaluator::extendCastEvaluator<false, 8, (otherSize > 32) ? 64 : 32>(node, cg);
                 break;
             default:
                 TR_ASSERT(0, "Invalid Address Precision (%d)\n", addrSize);
@@ -7273,9 +7273,9 @@ TR::Register *OMR::Z::TreeEvaluator::axaddEvaluator(TR::Node *node, TR::CodeGene
                     firstChild->getSymbolReference()->getSymbol()->castToAutoSymbol());
             } else {
                 targetRegister->setPinningArrayPointer(firstChild->getSymbolReference()
-                                                           ->getSymbol()
-                                                           ->castToInternalPointerAutoSymbol()
-                                                           ->getPinningArrayPointer());
+                        ->getSymbol()
+                        ->castToInternalPointerAutoSymbol()
+                        ->getPinningArrayPointer());
             }
         } else if (firstChild->getRegister() != NULL && firstChild->getRegister()->containsInternalPointer()) {
             targetRegister->setContainsInternalPointer();
@@ -10440,7 +10440,8 @@ TR::Register *OMR::Z::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::Cod
     if (!cg->inlineDirectCall(node, resultReg)) {
         TR::SymbolReference *symRef = node->getSymbolReference();
 
-        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
+        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()
+            && (node->getDataType().isInt32() || node->getDataType().isInt64())) {
             TR::Compilation *comp = cg->comp();
 
             if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
@@ -12728,18 +12729,18 @@ TR::Register *OMR::Z::TreeEvaluator::aRegLoadEvaluator(TR::Node *node, TR::CodeG
                 if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                     globalReg->setContainsInternalPointer();
                     globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                                                          ->getSymbol()
-                                                          ->castToInternalPointerAutoSymbol()
-                                                          ->getPinningArrayPointer());
+                            ->getSymbol()
+                            ->castToInternalPointerAutoSymbol()
+                            ->getPinningArrayPointer());
                 }
             } else {
                 if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                     globalReg = cg->allocateRegister();
                     globalReg->setContainsInternalPointer();
                     globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                                                          ->getSymbol()
-                                                          ->castToInternalPointerAutoSymbol()
-                                                          ->getPinningArrayPointer());
+                            ->getSymbol()
+                            ->castToInternalPointerAutoSymbol()
+                            ->getPinningArrayPointer());
                 } else {
                     globalReg = cg->allocateCollectedReferenceRegister();
                 }

@@ -6910,7 +6910,7 @@ TR::Register *OMR::Power::TreeEvaluator::directCallEvaluator(TR::Node *node, TR:
     return resultReg;
 }
 
-static TR::Register *inlineSimpleAtomicUpdate(TR::Node *node, bool isAddOp, bool isLong, bool isGetThenUpdate,
+static TR::Register *inlineSimpleAtomicUpdate(TR::Node *node, bool isAddOp, TR::DataType dt, bool isGetThenUpdate,
     TR::CodeGenerator *cg)
 {
     TR_ASSERT(cg->comp()->target().is64Bit(), "Atomic non-helpers are only supported in 64-bit mode\n");
@@ -6984,9 +6984,32 @@ static TR::Register *inlineSimpleAtomicUpdate(TR::Node *node, bool isAddOp, bool
         localDeltaReg = true;
     }
 
-    const uint8_t len = isLong ? 8 : 4;
+    const uint8_t len = TR::DataType::getSize(dt);
+    TR::InstOpCode::Mnemonic loadop, storeop;
 
-    generateTrg1MemInstruction(cg, isLong ? TR::InstOpCode::ldarx : TR::InstOpCode::lwarx, node, oldValueReg,
+    switch (dt) {
+        case TR::Int8:
+            loadop = TR::InstOpCode::lbarx;
+            storeop = TR::InstOpCode::stbcx_r;
+            break;
+        case TR::Int16:
+            loadop = TR::InstOpCode::lharx;
+            storeop = TR::InstOpCode::sthcx_r;
+            break;
+        case TR::Int32:
+            loadop = TR::InstOpCode::lwarx;
+            storeop = TR::InstOpCode::stwcx_r;
+            break;
+        case TR::Int64:
+            loadop = TR::InstOpCode::ldarx;
+            storeop = TR::InstOpCode::stdcx_r;
+            break;
+
+        default:
+            TR_ASSERT_FATAL(false, "Unsupported data type for inlineSimpleAtomicUpdate");
+    }
+
+    generateTrg1MemInstruction(cg, loadop, node, oldValueReg,
         TR::MemoryReference::createWithIndexReg(cg, 0, valueAddrReg, len));
 
     if (isAddOp) {
@@ -7004,8 +7027,8 @@ static TR::Register *inlineSimpleAtomicUpdate(TR::Node *node, bool isAddOp, bool
         deltaReg = NULL;
     }
 
-    generateMemSrc1Instruction(cg, isLong ? TR::InstOpCode::stdcx_r : TR::InstOpCode::stwcx_r, node,
-        TR::MemoryReference::createWithIndexReg(cg, 0, valueAddrReg, len), newValueReg);
+    generateMemSrc1Instruction(cg, storeop, node, TR::MemoryReference::createWithIndexReg(cg, 0, valueAddrReg, len),
+        newValueReg);
 
     // We expect this store is usually successful, i.e., the following branch will not be taken
     generateConditionalBranchInstruction(cg, TR::InstOpCode::bne, PPCOpProp_BranchUnlikely, node, loopLabel, cndReg);
@@ -7076,28 +7099,24 @@ bool OMR::Power::CodeGenerator::inlineDirectCall(TR::Node *node, TR::Register *&
 
     if (symRef && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
         bool isAddOp = false;
-        bool isLong = false;
         bool isGetThenUpdate = false;
 
         if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
             isAddOp = true;
-            isLong = !node->getChild(1)->getDataType().isInt32();
             isGetThenUpdate = false;
             doInline = true;
         } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAddSymbol)) {
             isAddOp = true;
-            isLong = !node->getChild(1)->getDataType().isInt32();
             isGetThenUpdate = true;
             doInline = true;
         } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
             isAddOp = false;
-            isLong = !node->getChild(1)->getDataType().isInt32();
             isGetThenUpdate = true;
             doInline = true;
         }
 
         if (doInline) {
-            resultReg = inlineSimpleAtomicUpdate(node, isAddOp, isLong, isGetThenUpdate, cg);
+            resultReg = inlineSimpleAtomicUpdate(node, isAddOp, node->getDataType(), isGetThenUpdate, cg);
         }
     }
 
@@ -7195,9 +7214,9 @@ TR::Register *OMR::Power::TreeEvaluator::gprRegLoadEvaluator(TR::Node *node, TR:
             if (node->getRegLoadStoreSymbolReference()->getSymbol()->isInternalPointer()) {
                 globalReg->setContainsInternalPointer();
                 globalReg->setPinningArrayPointer(node->getRegLoadStoreSymbolReference()
-                                                      ->getSymbol()
-                                                      ->castToInternalPointerAutoSymbol()
-                                                      ->getPinningArrayPointer());
+                        ->getSymbol()
+                        ->castToInternalPointerAutoSymbol()
+                        ->getPinningArrayPointer());
             }
         } else
             globalReg = cg->allocateCollectedReferenceRegister();
@@ -7408,7 +7427,7 @@ TR::Register *OMR::Power::TreeEvaluator::BBEndEvaluator(TR::Node *node, TR::Code
         assoc = new (cg->trHeapMemory())
             TR::RegisterDependencyConditions(0, TR::RealRegister::NumRegisters, cg->trMemory());
         for (TR::RealRegister::RegNum regNum = TR::RealRegister::FirstGPR; regNum < TR::RealRegister::NumRegisters;
-             regNum = (TR::RealRegister::RegNum)(regNum + TR::RealRegister::FirstGPR)) {
+            regNum = (TR::RealRegister::RegNum)(regNum + TR::RealRegister::FirstGPR)) {
             if (machine->getVirtualAssociatedWithReal(regNum) != 0) {
                 assoc->addPostCondition(machine->getVirtualAssociatedWithReal(regNum), regNum);
                 machine->getVirtualAssociatedWithReal(regNum)->setAssociation(0);

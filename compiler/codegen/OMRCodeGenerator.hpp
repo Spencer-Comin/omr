@@ -1401,6 +1401,7 @@ public:
     // Virtual register allocation
     //
     TR::Register *allocateRegister(TR_RegisterKinds rk = TR_GPR);
+    TR::Register *allocateRegister(const char *name, TR_RegisterKinds rk = TR_GPR);
     TR::Register *allocateCollectedReferenceRegister();
     TR::Register *allocateSinglePrecisionRegister(TR_RegisterKinds rk = TR_FPR);
 

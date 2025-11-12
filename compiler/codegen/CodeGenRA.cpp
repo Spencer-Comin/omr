@@ -599,6 +599,21 @@ TR::Register *OMR::CodeGenerator::allocateRegister(TR_RegisterKinds rk)
     return temp;
 }
 
+TR::Register *OMR::CodeGenerator::allocateRegister(const char *name, TR_RegisterKinds rk)
+{
+    TR_ASSERT(strlen(name) <= 30, "limit register names to less than 30 characters\n");
+    TR::Register *temp = allocateRegister(rk);
+
+    if (self()->getDebug()) {
+        char *buf = (char *)_comp->trMemory()->allocateHeapMemory(maxPrefixSize + 6
+            + 31); // max register kind name size plus underscore plus 30-char reg name plus null terminator
+        sprintf(buf, "%s%s_%s", prefix, getRegisterKindName(reg->getKind()), name);
+        _compilation->getToStringMap().Add((void *)temp, buf);
+    }
+
+    return temp;
+}
+
 void OMR::CodeGenerator::findAndFixCommonedReferences()
 {
     //

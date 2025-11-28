@@ -147,9 +147,9 @@ void TR_OutlinedInstructions::generateOutlinedInstructionsDispatch()
 
     _cg->decReferenceCount(_callNode);
 
-    if (_restartLabel)
+    if (_restartLabel) {
         generateLabelInstruction(TR::InstOpCode::JMP4, _callNode, _restartLabel, _cg);
-    else {
+    } else {
         // Java-specific.
         // No restart label implies we're not coming back from this call,
         // so it's safe to put data after the call.  In the case of calling a throw

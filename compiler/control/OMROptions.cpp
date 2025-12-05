@@ -655,6 +655,10 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
      SET_OPTION_BIT(TR_DisableKnownObjectTableCaching), "F" },
     { "disableLastITableCache", "C\tdisable using class lastITable cache for interface dispatches",
      SET_OPTION_BIT(TR_DisableLastITableCache), "F" },
+#if defined(TR_HOST_ARM64)
+    { "disableLDARVolatile", "O\tdisable LDAR instructions for volatile loads", SET_OPTION_BIT(TR_DisableLDARVolatile),
+     "F" },
+#endif
     { "disableLeafRoutineDetection", "O\tdisable lleaf routine detection on zlinux",
      SET_OPTION_BIT(TR_DisableLeafRoutineDetection), "F" },
     { "disableLinkageRegisterAllocation", "O\tdon't turn parm loads into RegLoads in first basic block",
@@ -894,6 +898,10 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
      "F" },
     { "disableStaticFinalFieldFolding", "O\tdisable generic static final field folding",
      TR::Options::disableOptimization, staticFinalFieldFolding, 0, "P" },
+#if defined(TR_HOST_ARM64)
+    { "disableSTLRVolatile", "O\tdisable STLR instructions for volatile stores", SET_OPTION_BIT(TR_DisableSTLRVolatile),
+     "F" },
+#endif
     { "disableStoreOnCondition", "O\tdisable store on condition (STOC) code gen",
      SET_OPTION_BIT(TR_DisableStoreOnCondition), "F" },
     { "disableStoreSinking", "O\tdisable store sinking", SET_OPTION_BIT(TR_DisableStoreSinking), "F" },

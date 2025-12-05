@@ -5534,7 +5534,8 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 
     TR::Symbol *sym = node->getSymbolReference()->getSymbol();
     bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
-    bool canUseLDAR = tempMR->getUnresolvedSnippet() == NULL && size <= 8;
+    bool canUseLDAR
+        = tempMR->getUnresolvedSnippet() == NULL && size <= 8 && !cg->comp()->getOption(TR_DisableLDARVolatile);
 
     if (needSync && canUseLDAR) {
         tempMR->simplify(node, cg);
@@ -5675,7 +5676,8 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
         valueChild = node->getFirstChild();
     }
 
-    bool canUseSTLR = size <= 8 && tempMR->getUnresolvedSnippet() == NULL;
+    bool canUseSTLR
+        = size <= 8 && tempMR->getUnresolvedSnippet() == NULL && !cg->comp()->getOption(TR_DisableSTLRVolatile);
     if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && !canUseSTLR) {
         generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishst);
     }

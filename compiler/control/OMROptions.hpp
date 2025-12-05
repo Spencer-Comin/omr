@@ -354,6 +354,7 @@ enum TR_CompilationOptions {
     TR_DisableZ16                                             = 0x00000080 + 8,
     TR_EmitExecutableELFFile                                  = 0x00000100 + 8,
     TR_JITServerFollowRemoteCompileWithLocalCompile           = 0x00000200 + 8,
+    TR_DisableSTLRVolatile                                    = 0x00000400 + 8,
     TR_EnableClassChainValidationCaching                      = 0x00000800 + 8,
     TR_DisableLinkageRegisterAllocation                       = 0x00001000 + 8,
     TR_EnableClassChainSharing                                = 0x00002000 + 8,
@@ -404,7 +405,7 @@ enum TR_CompilationOptions {
     TR_DisableNoServerDuringStartup                           = 0x04000000 + 9, // set TR_NoOptServer during startup and insert GCR trees
     TR_BreakOnNew                                             = 0x08000000 + 9,
     TR_DisableInliningUnrecognizedIntrinsics                  = 0x10000000 + 9,
-    // Available                                              = 0x20000000 + 9,
+    TR_DisableLDARVolatile                                    = 0x20000000 + 9,
     TR_MoveOOLInstructionsToWarmCode                          = 0x40000000 + 9,
     TR_MoveSnippetsToWarmCode                                 = 0x80000000 + 9,
 

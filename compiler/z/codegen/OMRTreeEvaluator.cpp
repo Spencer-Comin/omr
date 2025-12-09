@@ -10424,7 +10424,8 @@ TR::Register *OMR::Z::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::Cod
     if (!cg->inlineDirectCall(node, resultReg)) {
         TR::SymbolReference *symRef = node->getSymbolReference();
 
-        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
+        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()
+            && (node->getDataType().isInt32() || node->getDataType().isInt64())) {
             TR::Compilation *comp = cg->comp();
 
             if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {

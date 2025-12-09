@@ -7530,7 +7530,8 @@ static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->gprClobberEvaluate(valueNode);
-    const bool is64Bit = valueNode->getDataType().isInt64();
+    TR::DataType dt = valueNode->getDataType();
+    const bool is64Bit = dt.isInt64();
 
     TR::Register *newValueReg = cg->allocateRegister();
     TR::Compilation *comp = cg->comp();
@@ -7542,7 +7543,26 @@ static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
          * but if we use staddl, acquire semantics is not applied.
          * We use ldaddal to ensure volatile semantics.
          */
-        auto op = is64Bit ? TR::InstOpCode::ldaddalx : TR::InstOpCode::ldaddalw;
+
+        TR::InstOpCode::Mnemonic op;
+        switch (dt) {
+            case TR::Int8:
+                op = TR::InstOpCode::ldaddalb;
+                break;
+            case TR::Int16:
+                op = TR::InstOpCode::ldaddalh;
+                break;
+            case TR::Int32:
+                op = TR::InstOpCode::ldaddalw;
+                break;
+            case TR::Int64:
+                op = TR::InstOpCode::ldaddalx;
+                break;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicAdd");
+        }
+
         /*
          * As Trg1MemSrc1Instruction was introduced to support ldxr/stxr instructions, target and source register
          * convention is somewhat confusing. Its `treg` register actually is a source register and `sreg` register is a
@@ -7579,15 +7599,37 @@ static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
         loopLabel->setStartInternalControlFlow();
         generateLabelInstruction(cg, TR::InstOpCode::label, node, loopLabel);
 
-        auto loadop = is64Bit ? TR::InstOpCode::ldxrx : TR::InstOpCode::ldxrw;
+        // load acquire exclusive register, store release exclusive register
+        TR::InstOpCode::Mnemonic loadop, storeop;
+        switch (dt) {
+            case TR::Int8:
+                loadop = TR::InstOpCode::ldxrb;
+                storeop = TR::InstOpCode::stlxrb;
+                break;
+            case TR::Int16:
+                loadop = TR::InstOpCode::ldxrh;
+                storeop = TR::InstOpCode::stlxrh;
+                break;
+            case TR::Int32:
+                loadop = TR::InstOpCode::ldxrw;
+                storeop = TR::InstOpCode::stlxrw;
+                break;
+            case TR::Int64:
+                loadop = TR::InstOpCode::ldxrx;
+                storeop = TR::InstOpCode::stlxrx;
+                break;
+                ;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicFetchAndAdd");
+        }
+
         generateTrg1MemInstruction(cg, loadop, node, oldValueReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0));
 
         generateTrg1Src2Instruction(cg, (is64Bit ? TR::InstOpCode::addx : TR::InstOpCode::addw), node, newValueReg,
             oldValueReg, valueReg);
 
-        // store release exclusive register
-        auto storeop = is64Bit ? TR::InstOpCode::stlxrx : TR::InstOpCode::stlxrw;
         generateTrg1MemSrc1Instruction(cg, storeop, node, oldValueReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0), newValueReg);
         generateCompareBranchInstruction(cg, TR::InstOpCode::cbnzx, node, oldValueReg, loopLabel);
@@ -7647,7 +7689,8 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = NULL;
-    const bool is64Bit = valueNode->getDataType().isInt64();
+    TR::DataType dt = valueNode->getDataType();
+    const bool is64Bit = dt.isInt64();
     TR::Register *oldValueReg = cg->allocateRegister();
 
     TR::Compilation *comp = cg->comp();
@@ -7655,7 +7698,25 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
     if (comp->target().cpu.supportsFeature(OMR_FEATURE_ARM64_LSE) && (!disableLSE)) {
         valueReg = cg->evaluate(valueNode);
 
-        auto op = is64Bit ? TR::InstOpCode::ldaddalx : TR::InstOpCode::ldaddalw;
+        TR::InstOpCode::Mnemonic op;
+        switch (dt) {
+            case TR::Int8:
+                op = TR::InstOpCode::ldaddalb;
+                break;
+            case TR::Int16:
+                op = TR::InstOpCode::ldaddalh;
+                break;
+            case TR::Int32:
+                op = TR::InstOpCode::ldaddalw;
+                break;
+            case TR::Int64:
+                op = TR::InstOpCode::ldaddalx;
+                break;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicFetchAndAdd");
+        }
+
         /*
          * As Trg1MemSrc1Instruction was introduced to support ldxr/stxr instructions, target and source register
          * convention is somewhat confusing. Its `treg` register actually is a source register and `sreg` register is a
@@ -7668,11 +7729,24 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
         bool negate = false;
         bool killValueReg = false;
         if (valueNode->getOpCode().isLoadConst() && valueNode->getRegister() == NULL) {
-            if (is64Bit) {
-                value = valueNode->getLongInt();
-            } else {
-                value = valueNode->getInt();
+            switch (dt) {
+                case TR::Int8:
+                    value = valueNode->getByte();
+                    break;
+                case TR::Int16:
+                    value = valueNode->getShortInt();
+                    break;
+                case TR::Int32:
+                    value = valueNode->getInt();
+                    break;
+                case TR::Int64:
+                    value = valueNode->getLongInt();
+                    break;
+
+                default:
+                    TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicFetchAndAdd");
             }
+
             if (!constantIsUnsignedImm12(value)) {
                 if (constantIsUnsignedImm12(-value)) {
                     negate = true;
@@ -7720,8 +7794,31 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
         loopLabel->setStartInternalControlFlow();
         generateLabelInstruction(cg, TR::InstOpCode::label, node, loopLabel);
 
-        // load acquire exclusive register
-        auto loadop = is64Bit ? TR::InstOpCode::ldxrx : TR::InstOpCode::ldxrw;
+        // load acquire exclusive register, store release exclusive register
+        TR::InstOpCode::Mnemonic loadop, storeop;
+        switch (dt) {
+            case TR::Int8:
+                loadop = TR::InstOpCode::ldxrb;
+                storeop = TR::InstOpCode::stlxrb;
+                break;
+            case TR::Int16:
+                loadop = TR::InstOpCode::ldxrh;
+                storeop = TR::InstOpCode::stlxrh;
+                break;
+            case TR::Int32:
+                loadop = TR::InstOpCode::ldxrw;
+                storeop = TR::InstOpCode::stlxrw;
+                break;
+            case TR::Int64:
+                loadop = TR::InstOpCode::ldxrx;
+                storeop = TR::InstOpCode::stlxrx;
+                break;
+                ;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicFetchAndAdd");
+        }
+
         generateTrg1MemInstruction(cg, loadop, node, oldValueReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0));
 
@@ -7737,8 +7834,6 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
             generateTrg1Src2Instruction(cg, (is64Bit ? TR::InstOpCode::addx : TR::InstOpCode::addw), node, newValueReg,
                 oldValueReg, valueReg);
         }
-        // store release exclusive register
-        auto storeop = is64Bit ? TR::InstOpCode::stlxrx : TR::InstOpCode::stlxrw;
         generateTrg1MemSrc1Instruction(cg, storeop, node, tempReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0), newValueReg);
         generateCompareBranchInstruction(cg, TR::InstOpCode::cbnzx, node, tempReg, loopLabel);
@@ -7806,12 +7901,30 @@ TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->evaluate(valueNode);
     TR::Register *oldValueReg = cg->allocateRegister();
-    const bool is64Bit = valueNode->getDataType().isInt64();
+    TR::DataType dt = valueNode->getDataType();
+    const bool is64Bit = dt.isInt64();
 
     TR::Compilation *comp = cg->comp();
     static const bool disableLSE = feGetEnv("TR_aarch64DisableLSE") != NULL;
     if (comp->target().cpu.supportsFeature(OMR_FEATURE_ARM64_LSE) && (!disableLSE)) {
-        auto op = is64Bit ? TR::InstOpCode::swpalx : TR::InstOpCode::swpalw;
+        TR::InstOpCode::Mnemonic op;
+        switch (dt) {
+            case TR::Int8:
+                op = TR::InstOpCode::swpalb;
+                break;
+            case TR::Int16:
+                op = TR::InstOpCode::swpalh;
+                break;
+            case TR::Int32:
+                op = TR::InstOpCode::swpalw;
+                break;
+            case TR::Int64:
+                op = TR::InstOpCode::swpalx;
+                break;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicAdd");
+        }
         /*
          * As Trg1MemSrc1Instruction was introduced to support ldxr/stxr instructions, target and source register
          * convention is somewhat confusing. Its `treg` register actually is a source register and `sreg` register is a
@@ -7847,13 +7960,33 @@ TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
         loopLabel->setStartInternalControlFlow();
         generateLabelInstruction(cg, TR::InstOpCode::label, node, loopLabel);
 
-        // load acquire exclusive register
-        auto loadop = is64Bit ? TR::InstOpCode::ldxrx : TR::InstOpCode::ldxrw;
+        // load acquire exclusive register, store release exclusive register
+        TR::InstOpCode::Mnemonic loadop, storeop;
+        switch (dt) {
+            case TR::Int8:
+                loadop = TR::InstOpCode::ldxrb;
+                storeop = TR::InstOpCode::stlxrb;
+                break;
+            case TR::Int16:
+                loadop = TR::InstOpCode::ldxrh;
+                storeop = TR::InstOpCode::stlxrh;
+                break;
+            case TR::Int32:
+                loadop = TR::InstOpCode::ldxrw;
+                storeop = TR::InstOpCode::stlxrw;
+                break;
+            case TR::Int64:
+                loadop = TR::InstOpCode::ldxrx;
+                storeop = TR::InstOpCode::stlxrx;
+                break;
+                ;
+
+            default:
+                TR_ASSERT_FATAL(false, "Unsupported data type for intrinsicAtomicFetchAndAdd");
+        }
         generateTrg1MemInstruction(cg, loadop, node, oldValueReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0));
 
-        // store release exclusive register
-        auto storeop = is64Bit ? TR::InstOpCode::stlxrx : TR::InstOpCode::stlxrw;
         generateTrg1MemSrc1Instruction(cg, storeop, node, tempReg,
             TR::MemoryReference::createWithDisplacement(cg, addressReg, 0), valueReg);
         generateCompareBranchInstruction(cg, TR::InstOpCode::cbnzx, node, tempReg, loopLabel);

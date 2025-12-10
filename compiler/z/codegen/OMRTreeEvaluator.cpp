@@ -10424,8 +10424,7 @@ TR::Register *OMR::Z::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::Cod
     if (!cg->inlineDirectCall(node, resultReg)) {
         TR::SymbolReference *symRef = node->getSymbolReference();
 
-        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()
-            && (node->getDataType().isInt32() || node->getDataType().isInt64())) {
+        if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
             TR::Compilation *comp = cg->comp();
 
             if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
@@ -15975,13 +15974,101 @@ TR::Instruction *OMR::Z::TreeEvaluator::genLoadForObjectHeadersMasked(TR::CodeGe
     return iCursor;
 }
 
+static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool isFetch)
+{
+    TR::Node *addressNode = node->getChild(0);
+    TR::Node *valueNode = node->getChild(1);
+
+    TR::Register *addressReg = cg->gprClobberEvaluate(addressNode);
+    TR::Register *valueReg = cg->gprClobberEvaluate(valueNode);
+    TR::Register *oldWordReg = cg->allocateRegister();
+    TR::Register *newWordReg = cg->allocateRegister();
+    TR::Register *shiftReg = cg->allocateRegister();
+    TR::Register *maskReg = cg->allocateRegister();
+    TR::Register *returnReg = isFetch ? newWordReg : cg->allocateRegister();
+
+    TR::RegisterDependencyConditions *dependencies
+        = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, isFetch ? 6 : 7, cg);
+
+    dependencies->addPostCondition(addressReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(valueReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(oldWordReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(newWordReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(shiftReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(maskReg, TR::RealRegister::AssignAny);
+    if (!isFetch)
+        dependencies->addPostCondition(returnReg, TR::RealRegister::AssignAny);
+
+    // Align the address to nearest halfword and calculate how far to shift
+    generateRRInstruction(cg, TR::InstOpCode::LR, node, shiftReg, addressReg);
+    generateRIInstruction(cg, TR::InstOpCode::NILL, node, addressReg, 0xFFFE);
+    generateRRInstruction(cg, TR::InstOpCode::SR, node, shiftReg, addressReg);
+
+    // Shift value and mask
+    if (!isFetch)
+        generateRRInstruction(cg, TR::InstOpCode::LR, node, returnReg, valueReg);
+    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, node->getDataType().isInt8() ? 0xFF : 0xFFFF);
+    generateRSInstruction(cg, TR::InstOpCode::SLL, node, valueReg, generateS390MemoryReference(shiftReg, 0, cg));
+    generateRSInstruction(cg, TR::InstOpCode::SLL, node, maskReg, generateS390MemoryReference(shiftReg, 0, cg));
+
+    TR::MemoryReference *addressMemRef = generateS390MemoryReference(addressReg, 0, cg);
+
+    // Load the original word into oldWord
+    generateRXInstruction(cg, TR::InstOpCode::L, node, oldWordReg, addressMemRef);
+
+    TR::LabelSymbol *loopLabel = generateLabelSymbol(cg);
+    TR::LabelSymbol *cFlowRegionEnd = generateLabelSymbol(cg);
+
+    generateS390LabelInstruction(cg, TR::InstOpCode::label, node, loopLabel);
+    loopLabel->setStartInternalControlFlow();
+
+    // Add shifted value to correct portion of word
+    TR::Register *addReg = shiftReg;
+    generateRRRInstruction(cg, TR::InstOpCode::ARK, node, addReg, valueReg, oldWordReg);
+    generateRRInstruction(cg, TR::InstOpCode::NR, node, addReg, maskReg);
+    generateRRRInstruction(cg, TR::InstOpCode::NCRK, node, newWordReg, oldWordReg, maskReg);
+    generateRRInstruction(cg, TR::InstOpCode::OR, node, newWordReg, addReg);
+
+    addressMemRef = generateS390MemoryReference(*addressMemRef, 0, cg);
+
+    // Compare and swap against the original value
+    generateRSInstruction(cg, TR::InstOpCode::CS, node, oldWordReg, newWordReg, addressMemRef);
+
+    // Branch if the compare and swap failed and try again
+    generateS390BranchInstruction(cg, TR::InstOpCode::BRC, TR::InstOpCode::COND_CC1, node, loopLabel);
+
+    generateS390LabelInstruction(cg, TR::InstOpCode::label, node, cFlowRegionEnd, dependencies);
+    cFlowRegionEnd->setEndInternalControlFlow();
+
+    cg->stopUsingRegister(addressReg);
+    cg->stopUsingRegister(oldWordReg);
+    cg->stopUsingRegister(shiftReg);
+    cg->stopUsingRegister(maskReg);
+    cg->stopUsingRegister(valueReg);
+
+    if (!isFetch) {
+        cg->stopUsingRegister(newWordReg);
+    }
+
+    node->setRegister(returnReg);
+
+    cg->decReferenceCount(addressNode);
+    cg->decReferenceCount(valueNode);
+
+    return returnReg;
+}
+
 TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
 {
     TR_ASSERT_FATAL(cg->comp()->target().cpu.isAtLeast(OMR_PROCESSOR_S390_Z196),
         "Atomic add intrinsics are only supported z196+");
 
-    TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
+
+    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
+        return subAtomicAdd(node, cg, false);
+
+    TR::Node *addressNode = node->getChild(0);
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->evaluate(valueNode);
@@ -16008,8 +16095,12 @@ TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicFetchAndAdd(TR::Node *node, 
     TR_ASSERT_FATAL(cg->comp()->target().cpu.isAtLeast(OMR_PROCESSOR_S390_Z196),
         "Atomic add intrinsics are only supported z196+");
 
-    TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
+
+    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
+        return subAtomicAdd(node, cg, true);
+
+    TR::Node *addressNode = node->getChild(0);
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->gprClobberEvaluate(valueNode);
@@ -16027,10 +16118,82 @@ TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicFetchAndAdd(TR::Node *node, 
     return valueReg;
 }
 
-TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
+static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
+
+    TR::Register *addressReg = cg->gprClobberEvaluate(addressNode);
+    TR::Register *valueReg = cg->gprClobberEvaluate(valueNode);
+    TR::Register *returnReg = cg->allocateRegister();
+    TR::Register *shiftReg = cg->allocateRegister();
+    TR::Register *maskReg = cg->allocateRegister();
+
+    TR::RegisterDependencyConditions *dependencies
+        = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, 4, cg);
+
+    dependencies->addPostCondition(addressReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(valueReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(returnReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(maskReg, TR::RealRegister::AssignAny);
+
+    // Align the address to nearest halfword and calculate how far to shift
+    generateRRInstruction(cg, TR::InstOpCode::LR, node, shiftReg, addressReg);
+    generateRIInstruction(cg, TR::InstOpCode::NILL, node, addressReg, 0xFFFE);
+    generateRRInstruction(cg, TR::InstOpCode::SR, node, shiftReg, addressReg);
+
+    // Shift value and mask
+    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, node->getDataType().isInt8() ? 0xFF : 0xFFFF);
+    generateRSInstruction(cg, TR::InstOpCode::SLL, node, valueReg, generateS390MemoryReference(shiftReg, 0, cg));
+    generateRSInstruction(cg, TR::InstOpCode::SLL, node, maskReg, generateS390MemoryReference(shiftReg, 0, cg));
+
+    cg->stopUsingRegister(shiftReg);
+
+    TR::LabelSymbol *loopLabel = generateLabelSymbol(cg);
+    TR::LabelSymbol *cFlowRegionEnd = generateLabelSymbol(cg);
+
+    TR::MemoryReference *addressMemRef = generateS390MemoryReference(addressReg, 0, cg);
+
+    // Load the original word
+    generateRXInstruction(cg, TR::InstOpCode::L, node, returnReg, addressMemRef);
+
+    generateS390LabelInstruction(cg, TR::InstOpCode::label, node, loopLabel);
+    loopLabel->setStartInternalControlFlow();
+
+    // Insert the new value
+    generateRRRInstruction(cg, TR::InstOpCode::NCRK, node, shiftReg, returnReg, maskReg);
+    generateRRInstruction(cg, TR::InstOpCode::OR, node, valueReg, shiftReg);
+
+    addressMemRef = generateS390MemoryReference(*addressMemRef, 0, cg);
+
+    // Compare and swap against the original word
+    generateRSInstruction(cg, TR::InstOpCode::CS, node, returnReg, valueReg, addressMemRef);
+
+    // Branch if the compare and swap failed and try again
+    generateS390BranchInstruction(cg, TR::InstOpCode::BRC, TR::InstOpCode::COND_CC1, node, loopLabel);
+
+    generateS390LabelInstruction(cg, TR::InstOpCode::label, node, cFlowRegionEnd, dependencies);
+    cFlowRegionEnd->setEndInternalControlFlow();
+
+    cg->stopUsingRegister(addressReg);
+    cg->stopUsingRegister(valueReg);
+    cg->stopUsingRegister(maskReg);
+
+    node->setRegister(returnReg);
+    cg->decReferenceCount(addressNode);
+    cg->decReferenceCount(valueNode);
+
+    return returnReg;
+}
+
+TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
+{
+    TR::Node *valueNode = node->getChild(1);
+
+    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
+        return subAtomicSwap(node, cg);
+
+    TR::Node *addressNode = node->getChild(0);
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->evaluate(valueNode);

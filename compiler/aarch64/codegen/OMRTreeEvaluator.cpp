@@ -7523,14 +7523,13 @@ TR::Instruction *OMR::ARM64::TreeEvaluator::generateVFTMaskInstruction(TR::CodeG
  * @param   cg: The code generator used to generate the instructions.
  * @returns A register holding the <value> node.
  */
-static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
+static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->gprClobberEvaluate(valueNode);
-    TR::DataType dt = valueNode->getDataType();
     const bool is64Bit = dt.isInt64();
 
     TR::Register *newValueReg = cg->allocateRegister();
@@ -7682,14 +7681,13 @@ static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
  * @param   cg: The code generator used to generate the instructions.
  * @returns A register holding the original value in memory (before the addition) at the <address> location.
  */
-TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
+TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
 
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = NULL;
-    TR::DataType dt = valueNode->getDataType();
     const bool is64Bit = dt.isInt64();
     TR::Register *oldValueReg = cg->allocateRegister();
 
@@ -7893,7 +7891,7 @@ TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
  * @param   cg: The code generator used to generate the instructions.
  * @returns A register holding the original value in memory (before the swap) at the <address> location.
  */
-TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
+TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
@@ -7901,7 +7899,6 @@ TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
     TR::Register *addressReg = cg->evaluate(addressNode);
     TR::Register *valueReg = cg->evaluate(valueNode);
     TR::Register *oldValueReg = cg->allocateRegister();
-    TR::DataType dt = valueNode->getDataType();
     const bool is64Bit = dt.isInt64();
 
     TR::Compilation *comp = cg->comp();
@@ -8022,14 +8019,41 @@ bool OMR::ARM64::CodeGenerator::inlineDirectCall(TR::Node *node, TR::Register *&
     TR::SymbolReference *symRef = node->getSymbolReference();
 
     if (symRef && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
-        if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
-            resultReg = intrinsicAtomicAdd(node, cg);
+        if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd8BitSymbol)) {
+            resultReg = intrinsicAtomicAdd(node, cg, TR::Int8);
             return true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAddSymbol)) {
-            resultReg = intrinsicAtomicFetchAndAdd(node, cg);
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd16BitSymbol)) {
+            resultReg = intrinsicAtomicAdd(node, cg, TR::Int16);
             return true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
-            resultReg = intrinsicAtomicSwap(node, cg);
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd32BitSymbol)) {
+            resultReg = intrinsicAtomicAdd(node, cg, TR::Int32);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd64BitSymbol)) {
+            resultReg = intrinsicAtomicAdd(node, cg, TR::Int64);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol)) {
+            resultReg = intrinsicAtomicFetchAndAdd(node, cg, TR::Int8);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol)) {
+            resultReg = intrinsicAtomicFetchAndAdd(node, cg, TR::Int16);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
+            resultReg = intrinsicAtomicFetchAndAdd(node, cg, TR::Int32);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
+            resultReg = intrinsicAtomicFetchAndAdd(node, cg, TR::Int64);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap8BitSymbol)) {
+            resultReg = intrinsicAtomicSwap(node, cg, TR::Int8);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap16BitSymbol)) {
+            resultReg = intrinsicAtomicSwap(node, cg, TR::Int16);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap32BitSymbol)) {
+            resultReg = intrinsicAtomicSwap(node, cg, TR::Int32);
+            return true;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap64BitSymbol)) {
+            resultReg = intrinsicAtomicSwap(node, cg, TR::Int64);
             return true;
         }
     }

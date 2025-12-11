@@ -10427,12 +10427,34 @@ TR::Register *OMR::Z::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::Cod
         if (symRef != NULL && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
             TR::Compilation *comp = cg->comp();
 
-            if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
-                resultReg = TR::TreeEvaluator::intrinsicAtomicAdd(node, cg);
-            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAddSymbol)) {
-                resultReg = TR::TreeEvaluator::intrinsicAtomicFetchAndAdd(node, cg);
-            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
-                resultReg = TR::TreeEvaluator::intrinsicAtomicSwap(node, cg);
+            if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd8BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicAdd(node, cg, TR::Int8);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd16BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicAdd(node, cg, TR::Int16);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd32BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicAdd(node, cg, TR::Int32);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd64BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicAdd(node, cg, TR::Int64);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef,
+                           TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicFetchAndAdd(node, cg, TR::Int8);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef,
+                           TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicFetchAndAdd(node, cg, TR::Int16);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef,
+                           TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicFetchAndAdd(node, cg, TR::Int32);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef,
+                           TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicFetchAndAdd(node, cg, TR::Int64);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap8BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicSwap(node, cg, TR::Int8);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap16BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicSwap(node, cg, TR::Int16);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap32BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicSwap(node, cg, TR::Int32);
+            } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap64BitSymbol)) {
+                resultReg = TR::TreeEvaluator::intrinsicAtomicSwap(node, cg, TR::Int64);
             }
         }
 
@@ -15974,7 +15996,7 @@ TR::Instruction *OMR::Z::TreeEvaluator::genLoadForObjectHeadersMasked(TR::CodeGe
     return iCursor;
 }
 
-static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool isFetch)
+static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool isByte, bool isFetch)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
@@ -16007,7 +16029,7 @@ static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool is
     // Shift value and mask
     if (!isFetch)
         generateRRInstruction(cg, TR::InstOpCode::LR, node, returnReg, valueReg);
-    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, node->getDataType().isInt8() ? 0xFF : 0xFFFF);
+    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, isByte ? 0xFF : 0xFFFF);
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, valueReg, generateS390MemoryReference(shiftReg, 0, cg));
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, maskReg, generateS390MemoryReference(shiftReg, 0, cg));
 
@@ -16058,15 +16080,15 @@ static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool is
     return returnReg;
 }
 
-TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg)
+TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR_ASSERT_FATAL(cg->comp()->target().cpu.isAtLeast(OMR_PROCESSOR_S390_Z196),
         "Atomic add intrinsics are only supported z196+");
 
     TR::Node *valueNode = node->getChild(1);
 
-    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
-        return subAtomicAdd(node, cg, false);
+    if (TR::DataType::getSize(dt) < 4)
+        return subAtomicAdd(node, cg, dt.isInt8(), false);
 
     TR::Node *addressNode = node->getChild(0);
 
@@ -16078,7 +16100,7 @@ TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicAdd(TR::Node *node, TR::Code
 
     TR::MemoryReference *addressMemRef = generateS390MemoryReference(addressReg, 0, cg);
 
-    auto mnemonic = valueNode->getDataType().isInt32() ? TR::InstOpCode::LAA : TR::InstOpCode::LAAG;
+    auto mnemonic = dt.isInt32() ? TR::InstOpCode::LAA : TR::InstOpCode::LAAG;
 
     generateRSInstruction(cg, mnemonic, node, tempReg, valueReg, addressMemRef);
 
@@ -16090,15 +16112,15 @@ TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicAdd(TR::Node *node, TR::Code
     return valueReg;
 }
 
-TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg)
+TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR_ASSERT_FATAL(cg->comp()->target().cpu.isAtLeast(OMR_PROCESSOR_S390_Z196),
         "Atomic add intrinsics are only supported z196+");
 
     TR::Node *valueNode = node->getChild(1);
 
-    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
-        return subAtomicAdd(node, cg, true);
+    if (TR::DataType::getSize(dt) < 4)
+        return subAtomicAdd(node, cg, dt.isInt8(), true);
 
     TR::Node *addressNode = node->getChild(0);
 
@@ -16118,7 +16140,7 @@ TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicFetchAndAdd(TR::Node *node, 
     return valueReg;
 }
 
-static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
+static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool isByte)
 {
     TR::Node *addressNode = node->getChild(0);
     TR::Node *valueNode = node->getChild(1);
@@ -16143,7 +16165,7 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
     generateRRInstruction(cg, TR::InstOpCode::SR, node, shiftReg, addressReg);
 
     // Shift value and mask
-    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, node->getDataType().isInt8() ? 0xFF : 0xFFFF);
+    generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, isByte ? 0xFF : 0xFFFF);
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, valueReg, generateS390MemoryReference(shiftReg, 0, cg));
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, maskReg, generateS390MemoryReference(shiftReg, 0, cg));
 
@@ -16186,12 +16208,12 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
     return returnReg;
 }
 
-TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg)
+TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, TR::DataType *dt)
 {
     TR::Node *valueNode = node->getChild(1);
 
-    if (TR::DataType::getSize(valueNode->getDataType()) < 4)
-        return subAtomicSwap(node, cg);
+    if (TR::DataType::getSize(dt) < 4)
+        return subAtomicSwap(node, dt.isInt8(), cg);
 
     TR::Node *addressNode = node->getChild(0);
 

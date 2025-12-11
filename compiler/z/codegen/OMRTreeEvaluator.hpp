@@ -1208,10 +1208,13 @@ private:
      *  \param cg
      *     The code generator used to generate the instructions.
      *
+     * \param type
+     *     The type of the atomic operation.
+     *
      *  \return
      *     A register holding the <value> node.
      */
-    static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg);
+    static TR::Register *intrinsicAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType type);
 
     /** \brief
      *     Inlines an intrinsic for calls to atomicFetchAndAddSymbol which are represented by a call node of the form
@@ -1237,10 +1240,13 @@ private:
      *  \param cg
      *     The code generator used to generate the instructions.
      *
+     * \param type
+     *     The type of the atomic operation.
+     *
      *  \return
      *     A register holding the original value in memory (before the addition) at the <address> location.
      */
-    static TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg);
+    static TR::Register *intrinsicAtomicFetchAndAdd(TR::Node *node, TR::CodeGenerator *cg, TR::DataType type);
 
     /** \brief
      *     Inlines an intrinsic for calls to atomicSwapSymbol which are represented by a call node of the form for
@@ -1266,10 +1272,13 @@ private:
      *  \param cg
      *     The code generator used to generate the instructions.
      *
+     * \param type
+     *     The type of the atomic operation.
+     *
      *  \return
      *     A register holding the original value in memory (before the swap) at the <address> location.
      */
-    static TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg);
+    static TR::Register *intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, TR::DataType type);
 
     static void commonButestEvaluator(TR::Node *node, TR::CodeGenerator *cg);
     static TR::Register *ifFoldingHelper(TR::Node *node, TR::CodeGenerator *cg, bool &handledBIF);

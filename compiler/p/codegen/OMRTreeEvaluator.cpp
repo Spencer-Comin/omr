@@ -7112,23 +7112,72 @@ bool OMR::Power::CodeGenerator::inlineDirectCall(TR::Node *node, TR::Register *&
     if (symRef && symRef->getSymbol()->castToMethodSymbol()->isInlinedByCG()) {
         bool isAddOp = false;
         bool isGetThenUpdate = false;
+        TR::DataType type = TR::NoType;
 
-        if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAddSymbol)) {
+        if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd8BitSymbol)) {
             isAddOp = true;
             isGetThenUpdate = false;
             doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAddSymbol)) {
+            type = TR::Int8;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd16BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = false;
+            doInline = true;
+            type = TR::Int16;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd32BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = false;
+            doInline = true;
+            type = TR::Int32;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicAdd64BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = false;
+            doInline = true;
+            type = TR::Int64;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol)) {
             isAddOp = true;
             isGetThenUpdate = true;
             doInline = true;
-        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwapSymbol)) {
+            type = TR::Int8;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int16;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int32;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
+            isAddOp = true;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int64;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap8BitSymbol)) {
             isAddOp = false;
             isGetThenUpdate = true;
             doInline = true;
+            type = TR::Int8;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap16BitSymbol)) {
+            isAddOp = false;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int16;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap32BitSymbol)) {
+            isAddOp = false;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int32;
+        } else if (comp->getSymRefTab()->isNonHelper(symRef, TR::SymbolReferenceTable::atomicSwap64BitSymbol)) {
+            isAddOp = false;
+            isGetThenUpdate = true;
+            doInline = true;
+            type = TR::Int64;
         }
 
         if (doInline) {
-            resultReg = inlineSimpleAtomicUpdate(node, isAddOp, node->getDataType(), isGetThenUpdate, cg);
+            resultReg = inlineSimpleAtomicUpdate(node, isAddOp, type, isGetThenUpdate, cg);
         }
     }
 

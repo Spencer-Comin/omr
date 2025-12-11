@@ -1354,12 +1354,30 @@ const char *TR_Debug::getName(TR::SymbolReference *symRef)
                 return "<usesAllMethod>";
             case TR::SymbolReferenceTable::synchronizedFieldLoadSymbol:
                 return "<synchronizedFieldLoad>";
-            case TR::SymbolReferenceTable::atomicAddSymbol:
-                return "<atomicAdd>";
-            case TR::SymbolReferenceTable::atomicFetchAndAddSymbol:
-                return "<atomicFetchAndAdd>";
-            case TR::SymbolReferenceTable::atomicSwapSymbol:
-                return "<atomicSwap>";
+            case TR::SymbolReferenceTable::atomicAdd8BitSymbol:
+                return "<atomicAdd8Bit>";
+            case TR::SymbolReferenceTable::atomicAdd16BitSymbol:
+                return "<atomicAdd16Bit>";
+            case TR::SymbolReferenceTable::atomicAdd32BitSymbol:
+                return "<atomicAdd32Bit>";
+            case TR::SymbolReferenceTable::atomicAdd64BitSymbol:
+                return "<atomicAdd64Bit>";
+            case TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol:
+                return "<atomicFetchAndAdd8Bit>";
+            case TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol:
+                return "<atomicFetchAndAdd64Bit>";
+            case TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol:
+                return "<atomicFetchAndAdd32Bit>";
+            case TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol:
+                return "<atomicFetchAndAdd64Bit>";
+            case TR::SymbolReferenceTable::atomicSwap8BitSymbol:
+                return "<atomicSwap8Bit>";
+            case TR::SymbolReferenceTable::atomicSwap16BitSymbol:
+                return "<atomicSwap16Bit>";
+            case TR::SymbolReferenceTable::atomicSwap32Symbol:
+                return "<atomicSwap32Bit>";
+            case TR::SymbolReferenceTable::atomicSwap64Symbol:
+                return "<atomicSwap64Bit>";
             case TR::SymbolReferenceTable::atomicCompareAndSwapReturnStatusSymbol:
                 return "<atomicCompareAndSwapReturnStatus>";
             case TR::SymbolReferenceTable::atomicCompareAndSwapReturnValueSymbol:
@@ -1800,7 +1818,7 @@ const char *TR_Debug::getShadowName(TR::SymbolReference *symRef)
         "commonNonhelperSymbolNames array must match CommonNonhelperSymbol enumeration");
 
     for (int32_t i = TR::SymbolReferenceTable::firstCommonNonhelperNonArrayShadowSymbol;
-        i < _comp->getSymRefTab()->getLastCommonNonhelperSymbol(); i++) {
+         i < _comp->getSymRefTab()->getLastCommonNonhelperSymbol(); i++) {
         TR::SymbolReference *other = _comp->getSymRefTab()->element((TR::SymbolReferenceTable::CommonNonhelperSymbol)i);
         if (other && other->getSymbol() == symRef->getSymbol())
             return commonNonhelperSymbolNames[i - TR::SymbolReferenceTable::firstCommonNonhelperNonArrayShadowSymbol];
@@ -2654,7 +2672,7 @@ void TR_Debug::print(OMR::Logger *log, TR::GCStackAtlas *atlas)
     // Print the map for spill temps
     //
     for (auto temps = _comp->cg()->getCollectedSpillList().begin(); temps != _comp->cg()->getCollectedSpillList().end();
-        ++temps) {
+         ++temps) {
         TR::AutomaticSymbol *s = (*temps)->getSymbolReference()->getSymbol()->getAutoSymbol();
         print(log, s, true);
     }

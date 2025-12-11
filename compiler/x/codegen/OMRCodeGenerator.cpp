@@ -1272,9 +1272,18 @@ bool OMR::X86::CodeGenerator::getSupportsBitPermute() { return true; }
 bool OMR::X86::CodeGenerator::supportsNonHelper(TR::SymbolReferenceTable::CommonNonhelperSymbol symbol)
 {
     switch (symbol) {
-        case TR::SymbolReferenceTable::atomicAddSymbol:
-        case TR::SymbolReferenceTable::atomicFetchAndAddSymbol:
-        case TR::SymbolReferenceTable::atomicSwapSymbol:
+        case TR::SymbolReferenceTable::atomicAdd8BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd16BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd32BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd64BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap8BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap16BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap32BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap64BitSymbol:
         case TR::SymbolReferenceTable::atomicCompareAndSwapReturnStatusSymbol:
         case TR::SymbolReferenceTable::atomicCompareAndSwapReturnValueSymbol:
             return true;

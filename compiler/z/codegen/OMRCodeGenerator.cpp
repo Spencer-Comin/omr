@@ -1734,13 +1734,22 @@ bool OMR::Z::CodeGenerator::supportsNonHelper(TR::SymbolReferenceTable::CommonNo
     bool result = false;
 
     switch (symbol) {
-        case TR::SymbolReferenceTable::atomicAddSymbol:
-        case TR::SymbolReferenceTable::atomicFetchAndAddSymbol: {
+        case TR::SymbolReferenceTable::atomicAdd8BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd16BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd32BitSymbol:
+        case TR::SymbolReferenceTable::atomicAdd64BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol:
+        case TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol: {
             result = self()->comp()->target().cpu.isAtLeast(OMR_PROCESSOR_S390_Z196);
             break;
         }
 
-        case TR::SymbolReferenceTable::atomicSwapSymbol: {
+        case TR::SymbolReferenceTable::atomicSwap8BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap16BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap32BitSymbol:
+        case TR::SymbolReferenceTable::atomicSwap64BitSymbol: {
             result = true;
             break;
         }

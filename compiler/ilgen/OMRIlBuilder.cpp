@@ -2077,8 +2077,9 @@ TR::IlValue *OMR::IlBuilder::AtomicAdd(TR::IlValue *baseAddress, TR::IlValue *va
     TR_ASSERT_FATAL(returnType == TR::Int32 || (returnType == TR::Int64 && TR::Compiler->target.is64Bit()),
         "AtomicAdd currently only supports Int32/64 values");
 
-    TR::SymbolReference *methodSymRef
-        = symRefTab()->findOrCreateCodeGenInlinedHelper(TR::SymbolReferenceTable::atomicAddSymbol);
+    TR::SymbolReference *methodSymRef = symRefTab()->findOrCreateCodeGenInlinedHelper(returnType == TR::Int32
+            ? TR::SymbolReferenceTable::atomicAdd32BitSymbol
+            : TR::SymbolReferenceTable::atomicAdd64BitSymbol);
     TR::Node *callNode;
     callNode = TR::Node::createWithSymRef(TR::ILOpCode::getDirectCall(returnType), 2, methodSymRef);
     callNode->setAndIncChild(0, loadValue(baseAddress));

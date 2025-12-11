@@ -315,10 +315,11 @@ public:
          *    [address] = [address] + <value>
          *    return <value>
          *  \endcode
-         *
-         *  The data type of \c <value> indicates the width of the operation.
          */
-        atomicAddSymbol,
+        atomicAdd8BitSymbol,
+        atomicAdd16BitSymbol,
+        atomicAdd32BitSymbol,
+        atomicAdd64BitSymbol,
 
         /** \brief
          *
@@ -337,10 +338,11 @@ public:
          *    [address] = [address] + <value>
          *    return temp
          *  \endcode
-         *
-         *  The data type of \c <value> indicates the width of the operation.
          */
-        atomicFetchAndAddSymbol,
+        atomicFetchAndAdd8BitSymbol,
+        atomicFetchAndAdd16BitSymbol,
+        atomicFetchAndAdd32BitSymbol,
+        atomicFetchAndAdd64BitSymbol,
 
         /** \brief
          *
@@ -359,10 +361,11 @@ public:
          *    [address] = <value>
          *    return temp
          *  \endcode
-         *
-         *  The data type of \c <value> indicates the width of the operation.
          */
-        atomicSwapSymbol,
+        atomicSwap8BitSymbol,
+        atomicSwap16BitSymbol,
+        atomicSwap32BitSymbol,
+        atomicSwap64BitSymbol,
 
         /** \brief
          *

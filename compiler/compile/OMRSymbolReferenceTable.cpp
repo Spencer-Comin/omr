@@ -1912,9 +1912,10 @@ const char *OMR::SymbolReferenceTable::_commonNonHelperSymbolNames[] = { "<conti
     "<eaEscapeHelper>", "<instanceShape>", "<instanceDescription>", "<descriptionWordFromPtr>",
     "<objectEqualityComparison>", "<objectInequalityComparison>", "<nonNullableArrayNullStoreCheck>",
     "<loadFlattenableArrayElementNonHelper>", "<storeFlattenableArrayElementNonHelper>", "<synchronizedFieldLoad>",
-    "<atomicAdd>", "<atomicFetchAndAdd>", "<atomicFetchAndAdd32Bit>", "<atomicFetchAndAdd64Bit>", "<atomicSwap>",
-    "<atomicSwap32Bit>", "<atomicSwap64Bit>", "<atomicCompareAndSwapReturnStatus>", "<atomicCompareAndSwapReturnValue>",
-    "<jProfileValueSymbol>", "<jProfileValueWithNullCHKSymbol>" };
+    "<atomicAdd8Bit>", "<atomicAdd16Bit>", "<atomicAdd32Bit>", "<atomicAdd64Bit>", "<atomicFetchAndAdd8Bit>",
+    "<atomicFetchAndAdd16Bit>", "<atomicFetchAndAdd32Bit>", "<atomicFetchAndAdd64Bit>", "<atomicSwap8Bit>",
+    "<atomicSwap16Bit>", "<atomicSwap32Bit>", "<atomicSwap64Bit>", "<atomicCompareAndSwapReturnStatus>",
+    "<atomicCompareAndSwapReturnValue>", "<jProfileValueSymbol>", "<jProfileValueWithNullCHKSymbol>" };
 
 const char *OMR::SymbolReferenceTable::getNonHelperSymbolName(CommonNonhelperSymbol nonHelper)
 {

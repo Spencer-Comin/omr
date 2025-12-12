@@ -1374,9 +1374,9 @@ const char *TR_Debug::getName(TR::SymbolReference *symRef)
                 return "<atomicSwap8Bit>";
             case TR::SymbolReferenceTable::atomicSwap16BitSymbol:
                 return "<atomicSwap16Bit>";
-            case TR::SymbolReferenceTable::atomicSwap32Symbol:
+            case TR::SymbolReferenceTable::atomicSwap32BitSymbol:
                 return "<atomicSwap32Bit>";
-            case TR::SymbolReferenceTable::atomicSwap64Symbol:
+            case TR::SymbolReferenceTable::atomicSwap64BitSymbol:
                 return "<atomicSwap64Bit>";
             case TR::SymbolReferenceTable::atomicCompareAndSwapReturnStatusSymbol:
                 return "<atomicCompareAndSwapReturnStatus>";
@@ -1762,8 +1762,10 @@ static const char *commonNonhelperSymbolNames[] = { "<contiguousArraySize>", "<d
     "<heapBase>", "<heapTop>", "<j9methodExtraField>", "<j9methodConstantPoolField>", "<startPCLinkageInfo>",
     "<instanceShapeFromROMClass>", "<objectEqualityComparison>", "<objectInequalityComparison>",
     "<nonNullableArrayNullStoreCheck>", "<loadFlattenableArrayElementNonHelper>",
-    "<storeFlattenableArrayElementNonHelper>", "<isIdentityObject>", "<synchronizedFieldLoad>", "<atomicAdd>",
-    "<atomicFetchAndAdd>", "<atomicSwap>", "<atomicCompareAndSwapReturnStatus>", "<atomicCompareAndSwapReturnValue>",
+    "<storeFlattenableArrayElementNonHelper>", "<isIdentityObject>", "<synchronizedFieldLoad>", "<atomicAdd8Bit>",
+    "<atomicAdd16Bit>", "<atomicAdd32Bit>", "<atomicAdd64Bit>", "<atomicFetchAndAdd8Bit>", "<atomicFetchAndAdd16Bit>",
+    "<atomicFetchAndAdd32Bit>", "<atomicFetchAndAdd64Bit>", "<atomicSwap8Bit>", "<atomicSwap16Bit>",
+    "<atomicSwap32Bit>", "<atomicSwap64Bit>", "<atomicCompareAndSwapReturnStatus>", "<atomicCompareAndSwapReturnValue>",
     "<jProfileValueSymbol>", "<jProfileValueWithNullCHKSymbol>", "<j9VMThreadTempSlotField>",
     "<computedStaticCallSymbol>", "<j9VMThreadFloatTemp1>", "<J9JNIMethodIDvTableIndexFieldSymbol>", "<defaultValue>",
     "<jitDispatchJ9Method>" };

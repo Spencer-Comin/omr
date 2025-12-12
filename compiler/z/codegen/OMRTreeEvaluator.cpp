@@ -16208,12 +16208,12 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool i
     return returnReg;
 }
 
-TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, TR::DataType *dt)
+TR::Register *OMR::Z::TreeEvaluator::intrinsicAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, TR::DataType dt)
 {
     TR::Node *valueNode = node->getChild(1);
 
     if (TR::DataType::getSize(dt) < 4)
-        return subAtomicSwap(node, dt.isInt8(), cg);
+        return subAtomicSwap(node, cg, dt.isInt8());
 
     TR::Node *addressNode = node->getChild(0);
 

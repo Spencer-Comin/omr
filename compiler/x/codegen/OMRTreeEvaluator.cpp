@@ -4184,19 +4184,19 @@ TR::Register *OMR::X86::TreeEvaluator::directCallEvaluator(TR::Node *node, TR::C
 
         if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd8BitSymbol)) {
             op = TR::InstOpCode::LADD1MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd16Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd16BitSymbol)) {
             op = TR::InstOpCode::LADD2MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd32Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd32BitSymbol)) {
             op = TR::InstOpCode::LADD4MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd64Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicAdd64BitSymbol)) {
             op = TR::InstOpCode::LADD8MemReg;
         } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol)) {
             op = TR::InstOpCode::LXADD1MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd16Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol)) {
             op = TR::InstOpCode::LXADD2MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd32Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol)) {
             op = TR::InstOpCode::LXADD4MemReg;
-        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd64Symbol)) {
+        } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol)) {
             op = TR::InstOpCode::LXADD8MemReg;
         } else if (comp->getSymRefTab()->isNonHelper(SymRef, TR::SymbolReferenceTable::atomicSwap8BitSymbol)) {
             op = TR::InstOpCode::XCHG1MemReg;

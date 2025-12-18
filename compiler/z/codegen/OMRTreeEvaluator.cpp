@@ -16051,7 +16051,7 @@ static TR::Register *subAtomicAdd(TR::Node *node, TR::CodeGenerator *cg, bool is
     generateRRRInstruction(cg, TR::InstOpCode::NCRK, node, newWordReg, oldWordReg, maskReg);
     generateRRInstruction(cg, TR::InstOpCode::OR, node, newWordReg, addReg);
 
-    addressMemRef = generateS390MemoryReference(addressReg, 0, cg);
+    addressMemRef = generateS390MemoryReference(*addressMemRef, 0, cg);
 
     // Compare and swap against the original value
     generateRSInstruction(cg, TR::InstOpCode::CS, node, oldWordReg, newWordReg, addressMemRef);
@@ -16185,7 +16185,7 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool i
     generateRRRInstruction(cg, TR::InstOpCode::NCRK, node, shiftReg, returnReg, maskReg);
     generateRRInstruction(cg, TR::InstOpCode::OR, node, valueReg, shiftReg);
 
-    addressMemRef = generateS390MemoryReference(addressReg, 0, cg);
+    addressMemRef = generateS390MemoryReference(*addressMemRef, 0, cg);
 
     // Compare and swap against the original word
     generateRSInstruction(cg, TR::InstOpCode::CS, node, returnReg, valueReg, addressMemRef);

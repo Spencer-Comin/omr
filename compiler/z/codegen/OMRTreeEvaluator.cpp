@@ -16152,11 +16152,12 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool i
     TR::Register *maskReg = cg->allocateRegister();
 
     TR::RegisterDependencyConditions *dependencies
-        = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, 4, cg);
+        = new (cg->trHeapMemory()) TR::RegisterDependencyConditions(0, 5, cg);
 
     dependencies->addPostCondition(addressReg, TR::RealRegister::AssignAny);
     dependencies->addPostCondition(valueReg, TR::RealRegister::AssignAny);
     dependencies->addPostCondition(returnReg, TR::RealRegister::AssignAny);
+    dependencies->addPostCondition(shiftReg, TR::RealRegister::AssignAny);
     dependencies->addPostCondition(maskReg, TR::RealRegister::AssignAny);
 
     // Align the address to nearest halfword and calculate how far to shift
@@ -16168,8 +16169,6 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool i
     generateRIInstruction(cg, TR::InstOpCode::LHI, node, maskReg, isByte ? 0xFF : 0xFFFF);
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, valueReg, generateS390MemoryReference(shiftReg, 0, cg));
     generateRSInstruction(cg, TR::InstOpCode::SLL, node, maskReg, generateS390MemoryReference(shiftReg, 0, cg));
-
-    cg->stopUsingRegister(shiftReg);
 
     TR::LabelSymbol *loopLabel = generateLabelSymbol(cg);
     TR::LabelSymbol *cFlowRegionEnd = generateLabelSymbol(cg);
@@ -16200,6 +16199,7 @@ static TR::Register *subAtomicSwap(TR::Node *node, TR::CodeGenerator *cg, bool i
     cg->stopUsingRegister(addressReg);
     cg->stopUsingRegister(valueReg);
     cg->stopUsingRegister(maskReg);
+    cg->stopUsingRegister(shiftReg);
 
     node->setRegister(returnReg);
     cg->decReferenceCount(addressNode);

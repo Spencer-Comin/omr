@@ -1365,7 +1365,7 @@ const char *TR_Debug::getName(TR::SymbolReference *symRef)
             case TR::SymbolReferenceTable::atomicFetchAndAdd8BitSymbol:
                 return "<atomicFetchAndAdd8Bit>";
             case TR::SymbolReferenceTable::atomicFetchAndAdd16BitSymbol:
-                return "<atomicFetchAndAdd64Bit>";
+                return "<atomicFetchAndAdd16Bit>";
             case TR::SymbolReferenceTable::atomicFetchAndAdd32BitSymbol:
                 return "<atomicFetchAndAdd32Bit>";
             case TR::SymbolReferenceTable::atomicFetchAndAdd64BitSymbol:

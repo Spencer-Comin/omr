@@ -4377,7 +4377,7 @@ TR::TreeTop *TR::LocalValuePropagation::processBlock(TR::TreeTop *startTree)
     return startTree;
 }
 
-const char *TR::LocalValuePropagation::optDetailString() const throw() { return "O^O LOCAL VALUE PROPAGATION: "; }
+const char *TR::LocalValuePropagation::optDetailString() const noexcept { return "O^O LOCAL VALUE PROPAGATION: "; }
 
 void OMR::ValuePropagation::launchNode(TR::Node *node, TR::Node *parent, int32_t whichChild)
 {

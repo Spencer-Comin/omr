@@ -144,7 +144,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     virtual int32_t detectCanonicalizedPredictableLoops(TR_Structure *, TR_BitVector **, int32_t);
 
@@ -538,7 +538,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     TR_Array<TR_BasicInductionVariable *> *getInductionVariables() { return _ivs; }
 
@@ -678,7 +678,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     void changeIVTypeFromAddrToInt(TR_RegionStructure *natLoop);

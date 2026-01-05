@@ -1009,4 +1009,4 @@ TR::TreeTop *TR::DeadTreesElimination::findLastTreetop(TR::Block *block, TR::Tre
     return block->getLastRealTreeTop();
 }
 
-const char *TR::DeadTreesElimination::optDetailString() const throw() { return "O^O DEAD TREES ELIMINATION: "; }
+const char *TR::DeadTreesElimination::optDetailString() const noexcept { return "O^O DEAD TREES ELIMINATION: "; }

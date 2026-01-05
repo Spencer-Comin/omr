@@ -36,38 +36,34 @@ template<typename T> class reference_wrapper {
 public:
     typedef T type;
     typedef T &reference_type;
-    inline explicit reference_wrapper(reference_type ref) throw();
-    inline reference_wrapper(const reference_wrapper &other) throw();
-    inline reference_wrapper &operator=(const reference_wrapper &other) throw();
-    inline reference_type get() throw();
-    inline operator reference_type() throw();
+    inline explicit reference_wrapper(reference_type ref) noexcept;
+    inline reference_wrapper(const reference_wrapper &other) noexcept;
+    inline reference_wrapper &operator=(const reference_wrapper &other) noexcept;
+    inline reference_type get() noexcept;
+    inline operator reference_type() noexcept;
 
 private:
     T *m_ref;
 };
 
-template<typename T>
-reference_wrapper<T>::reference_wrapper(reference_type ref) throw()
-    : m_ref(&ref)
-{}
+template<typename T> reference_wrapper<T>::reference_wrapper(reference_type ref) noexcept : m_ref(&ref) {}
 
 template<typename T>
-reference_wrapper<T>::reference_wrapper(const reference_wrapper &other) throw()
-    : m_ref(other.m_ref)
+reference_wrapper<T>::reference_wrapper(const reference_wrapper &other) noexcept : m_ref(other.m_ref)
 {}
 
-template<typename T> reference_wrapper<T> &reference_wrapper<T>::operator=(const reference_wrapper &other) throw()
+template<typename T> reference_wrapper<T> &reference_wrapper<T>::operator=(const reference_wrapper &other) noexcept
 {
     m_ref = other.m_ref;
     return *this;
 }
 
-template<typename T> typename reference_wrapper<T>::reference_type reference_wrapper<T>::get() throw()
+template<typename T> typename reference_wrapper<T>::reference_type reference_wrapper<T>::get() noexcept
 {
     return *m_ref;
 }
 
-template<typename T> reference_wrapper<T>::operator reference_type() throw() { return *m_ref; }
+template<typename T> reference_wrapper<T>::operator reference_type() noexcept { return *m_ref; }
 
 template<typename T> reference_wrapper<T> inline ref(T &reference) { return reference_wrapper<T>(reference); }
 

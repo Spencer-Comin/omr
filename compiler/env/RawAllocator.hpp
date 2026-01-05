@@ -49,7 +49,7 @@ public:
 
     RawAllocator(const RawAllocator &other) {}
 
-    void *allocate(size_t size, const std::nothrow_t tag, void *hint = 0) throw() { return malloc(size); }
+    void *allocate(size_t size, const std::nothrow_t tag, void *hint = 0) noexcept { return malloc(size); }
 
     void *allocate(size_t size, void *hint = 0)
     {
@@ -59,15 +59,15 @@ public:
         return alloc;
     }
 
-    void deallocate(void *p) throw() { free(p); }
+    void deallocate(void *p) noexcept { free(p); }
 
-    void deallocate(void *p, const size_t size) throw() { free(p); }
+    void deallocate(void *p, const size_t size) noexcept { free(p); }
 
     friend bool operator==(const RawAllocator &left, const RawAllocator &right) { return true; }
 
     friend bool operator!=(const RawAllocator &left, const RawAllocator &right) { return !operator==(left, right); }
 
-    template<typename T> operator TR::typed_allocator<T, RawAllocator>() throw()
+    template<typename T> operator TR::typed_allocator<T, RawAllocator>() noexcept
     {
         return TR::typed_allocator<T, RawAllocator>(*this);
     }
@@ -77,18 +77,18 @@ public:
 
 inline void *operator new(size_t size, OMR::RawAllocator allocator) { return allocator.allocate(size); }
 
-inline void operator delete(void *ptr, OMR::RawAllocator allocator) throw() { allocator.deallocate(ptr); }
+inline void operator delete(void *ptr, OMR::RawAllocator allocator) noexcept { allocator.deallocate(ptr); }
 
 inline void *operator new[](size_t size, OMR::RawAllocator allocator) { return allocator.allocate(size); }
 
-inline void operator delete[](void *ptr, OMR::RawAllocator allocator) throw() { allocator.deallocate(ptr); }
+inline void operator delete[](void *ptr, OMR::RawAllocator allocator) noexcept { allocator.deallocate(ptr); }
 
-inline void *operator new(size_t size, OMR::RawAllocator allocator, const std::nothrow_t &tag) throw()
+inline void *operator new(size_t size, OMR::RawAllocator allocator, const std::nothrow_t &tag) noexcept
 {
     return allocator.allocate(size, tag);
 }
 
-inline void *operator new[](size_t size, OMR::RawAllocator allocator, const std::nothrow_t &tag) throw()
+inline void *operator new[](size_t size, OMR::RawAllocator allocator, const std::nothrow_t &tag) noexcept
 {
     return allocator.allocate(size, tag);
 }

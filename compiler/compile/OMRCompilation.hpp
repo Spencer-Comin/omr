@@ -290,7 +290,7 @@ public:
 
     TR::SymbolReference *getSymbolReferenceByReferenceNumber(int32_t referenceNumber);
 
-    ~Compilation() throw();
+    ~Compilation() noexcept;
 
     OMR_FINAL TR::Region &region() { return _heapMemoryRegion; }
 

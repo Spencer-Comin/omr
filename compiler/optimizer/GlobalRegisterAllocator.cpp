@@ -3418,7 +3418,7 @@ void TR_GlobalRegisterAllocator::createStoresForSignExt(TR::Node *node, TR::Node
             visitCount, hasCatchBlock);
 }
 
-const char *TR_GlobalRegisterAllocator::optDetailString() const throw() { return "O^O GLOBAL REGISTER ASSIGNER: "; }
+const char *TR_GlobalRegisterAllocator::optDetailString() const noexcept { return "O^O GLOBAL REGISTER ASSIGNER: "; }
 
 TR_LiveRangeSplitter::TR_LiveRangeSplitter(TR::OptimizationManager *manager)
     : TR::Optimization(manager)
@@ -4228,4 +4228,4 @@ void TR_LiveRangeSplitter::placeStoresInLoopExits(TR::Node *node, TR_StructureSu
     */
 }
 
-const char *TR_LiveRangeSplitter::optDetailString() const throw() { return "O^O LIVE RANGE SPLITTER: "; }
+const char *TR_LiveRangeSplitter::optDetailString() const noexcept { return "O^O LIVE RANGE SPLITTER: "; }

@@ -102,7 +102,7 @@ int32_t TR::SwitchAnalyzer::perform()
     return 1;
 }
 
-const char *TR::SwitchAnalyzer::optDetailString() const throw() { return "O^O SWITCH ANALYZER: "; }
+const char *TR::SwitchAnalyzer::optDetailString() const noexcept { return "O^O SWITCH ANALYZER: "; }
 
 void TR::SwitchAnalyzer::analyze(TR::Node *node, TR::Block *block)
 {

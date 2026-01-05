@@ -740,7 +740,7 @@ TR::Node *TR_VirtualGuardTailSplitter::getFirstCallNode(TR::Block *block)
     return NULL;
 }
 
-const char *TR_VirtualGuardTailSplitter::optDetailString() const throw() { return "O^O VIRTUAL GUARD COALESCER: "; }
+const char *TR_VirtualGuardTailSplitter::optDetailString() const noexcept { return "O^O VIRTUAL GUARD COALESCER: "; }
 
 TR_InnerPreexistence::TR_InnerPreexistence(TR::OptimizationManager *manager)
     : TR::Optimization(manager)
@@ -977,4 +977,4 @@ void TR_InnerPreexistence::devirtualize(GuardInfo *info)
     requestOpt(OMR::treeSimplification, true, guardBlock);
 }
 
-const char *TR_InnerPreexistence::optDetailString() const throw() { return "O^O INNER PREEXISTENCE: "; }
+const char *TR_InnerPreexistence::optDetailString() const noexcept { return "O^O INNER PREEXISTENCE: "; }

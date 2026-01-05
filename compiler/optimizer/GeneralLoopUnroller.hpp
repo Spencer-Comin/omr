@@ -326,7 +326,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     void collectNonColdInnerLoops(TR_RegionStructure *region, List<TR_RegionStructure> &innerLoops);

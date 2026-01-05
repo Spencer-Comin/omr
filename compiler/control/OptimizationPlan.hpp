@@ -52,7 +52,7 @@ struct TR_MethodToBeCompiled;
 // when -qnoeh is effect. As a result, we use it everywhere exept on XLC
 #define NOTHROW
 #else
-#define NOTHROW throw()
+#define NOTHROW noexcept
 #endif
 
 ///////////////////////////////////////////////////////////////////////

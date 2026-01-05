@@ -134,7 +134,7 @@ int32_t TR_PeepHoleBasicBlocks::perform()
     return rc;
 }
 
-const char *TR_PeepHoleBasicBlocks::optDetailString() const throw() { return "O^O BASIC BLOCK PEEPHOLE: "; }
+const char *TR_PeepHoleBasicBlocks::optDetailString() const noexcept { return "O^O BASIC BLOCK PEEPHOLE: "; }
 
 // Extend basic blocks.
 // Return "true" if any basic block extension was done
@@ -728,7 +728,7 @@ int32_t TR_ExtendBasicBlocks::orderBlocksWithFrequencyInfo()
     return 1; // actual cost
 }
 
-const char *TR_ExtendBasicBlocks::optDetailString() const throw() { return "O^O BASIC BLOCK EXTENSION: "; }
+const char *TR_ExtendBasicBlocks::optDetailString() const noexcept { return "O^O BASIC BLOCK EXTENSION: "; }
 
 // void TR_BlockManipulator::markColdBlocks()
 //    {
@@ -1265,7 +1265,7 @@ bool TR_HoistBlocks::hasSynergy(TR::Block *block, TR::Node *node1)
     return synergyExists;
 }
 
-const char *TR_HoistBlocks::optDetailString() const throw() { return "O^O BASIC BLOCK HOISTING: "; }
+const char *TR_HoistBlocks::optDetailString() const noexcept { return "O^O BASIC BLOCK HOISTING: "; }
 
 // For short blocks that consist of either a return statement or
 // a conditional branch to the end of all predecessor blocks.
@@ -2128,7 +2128,7 @@ bool TR_CompactNullChecks::replaceNullCheckIfPossible(TR::Node *cursorNode, TR::
     return true;
 }
 
-const char *TR_CompactNullChecks::optDetailString() const throw() { return "O^O COMPACT NULL CHECKS: "; }
+const char *TR_CompactNullChecks::optDetailString() const noexcept { return "O^O COMPACT NULL CHECKS: "; }
 
 static int32_t compareValues(TR::Node *node1, TR::Node *node2)
 {
@@ -2378,7 +2378,7 @@ bool TR_ArraysetStoreElimination::optimizeArraysetIfPossible(TR::Node *currentNo
     return false;
 }
 
-const char *TR_ArraysetStoreElimination::optDetailString() const throw() { return "O^O ARRAYSET STORE ELIMINATION: "; }
+const char *TR_ArraysetStoreElimination::optDetailString() const noexcept { return "O^O ARRAYSET STORE ELIMINATION: "; }
 
 // Tries to simplify ands that are created by loop versioning;
 // basically tries avoid doing the same test twice within an and
@@ -2845,7 +2845,7 @@ int32_t TR_SimplifyAnds::process(TR::TreeTop *startTree, TR::TreeTop *endTree)
     return 1; // actual cost
 }
 
-const char *TR_SimplifyAnds::optDetailString() const throw() { return "O^O AND SIMPLIFICATION: "; }
+const char *TR_SimplifyAnds::optDetailString() const noexcept { return "O^O AND SIMPLIFICATION: "; }
 
 // Basically if there is a branch that has a block B as its target; and block B
 // only has a goto in it redirecting control flow to some other block C, then
@@ -3384,7 +3384,7 @@ void TR_EliminateRedundantGotos::fixPredecessorRegDeps(TR::Node *regdepsParent, 
     regdeps->setNumChildren(remainingDeps);
 }
 
-const char *TR_EliminateRedundantGotos::optDetailString() const throw() { return "O^O GOTO ELIMINATION: "; }
+const char *TR_EliminateRedundantGotos::optDetailString() const noexcept { return "O^O GOTO ELIMINATION: "; }
 
 // If there is a block B with a goto at the end of the block that goes to the
 // block C that follows it textually in the IL trees, eliminate the goto.
@@ -3556,7 +3556,7 @@ int32_t TR_CleanseTrees::process(TR::TreeTop *startTree, TR::TreeTop *endTreeTop
     return 0; // actual cost
 }
 
-const char *TR_CleanseTrees::optDetailString() const throw() { return "O^O TREE CLEANSING: "; }
+const char *TR_CleanseTrees::optDetailString() const noexcept { return "O^O TREE CLEANSING: "; }
 
 TR_ByteCodeInfo TR_ProfiledNodeVersioning::temporarilySetProfilingBcInfoOnNewArrayLengthChild(TR::Node *newArray,
     TR::Compilation *comp)
@@ -3763,7 +3763,7 @@ int32_t TR_ProfiledNodeVersioning::perform()
     return 123; // TODO: What to return here?
 }
 
-const char *TR_ProfiledNodeVersioning::optDetailString() const throw() { return "O^O PROFILED NODE VERSIONING: "; }
+const char *TR_ProfiledNodeVersioning::optDetailString() const noexcept { return "O^O PROFILED NODE VERSIONING: "; }
 
 TR_Rematerialization::TR_Rematerialization(TR::OptimizationManager *manager)
     : TR::Optimization(manager)
@@ -4840,7 +4840,7 @@ void TR_Rematerialization::rematerializeNode(TR::TreeTop *treeTop, TR::Node *par
     }
 }
 
-const char *TR_Rematerialization::optDetailString() const throw() { return "O^O REMATERIALIZATION: "; }
+const char *TR_Rematerialization::optDetailString() const noexcept { return "O^O REMATERIALIZATION: "; }
 
 TR_BlockSplitter::TR_BlockSplitter(TR::OptimizationManager *manager)
     : TR::Optimization(manager)
@@ -5896,7 +5896,7 @@ TR::Block *TR_BlockSplitter::splitBlock(TR::Block *pred, TR_LinkHeadAndTail<Bloc
     return cloneStart;
 }
 
-const char *TR_BlockSplitter::optDetailString() const throw() { return "O^O BLOCK SPLITTER: "; }
+const char *TR_BlockSplitter::optDetailString() const noexcept { return "O^O BLOCK SPLITTER: "; }
 
 #include "il/SymbolReference.hpp"
 
@@ -6754,7 +6754,7 @@ void TR_InvariantArgumentPreexistence::processIndirectLoad(TR::Node *node, TR::T
     }
 }
 
-const char *TR_InvariantArgumentPreexistence::optDetailString() const throw()
+const char *TR_InvariantArgumentPreexistence::optDetailString() const noexcept
 {
     return "O^O INVARIANT ARGUMENT PREEXISTENCE: ";
 }
@@ -7364,7 +7364,7 @@ void TR_CheckcastAndProfiledGuardCoalescer::traceCannotTransformDueToMerge(TR::B
     comp()->log()->printf("Cannot transform because the start of block_%d is a merge point\n", mergeBlock->getNumber());
 }
 
-const char *TR_CheckcastAndProfiledGuardCoalescer::optDetailString() const throw()
+const char *TR_CheckcastAndProfiledGuardCoalescer::optDetailString() const noexcept
 {
     return "O^O CHECKCAST AND PROFILED GUARD COALESCER: ";
 }
@@ -7579,7 +7579,7 @@ bool TR_ColdBlockMarker::hasNotYetRun(TR::Node *node)
     return false;
 }
 
-const char *TR_ColdBlockMarker::optDetailString() const throw() { return "O^O COLD BLOCK MARKER: "; }
+const char *TR_ColdBlockMarker::optDetailString() const noexcept { return "O^O COLD BLOCK MARKER: "; }
 
 TR_ColdBlockOutlining::TR_ColdBlockOutlining(TR::OptimizationManager *manager)
     : TR_ColdBlockMarker(manager)
@@ -7742,7 +7742,7 @@ void TR_ColdBlockOutlining::reorderColdBlocks()
     logprintf(trace(), comp()->log(), "Cold Block Outlining: outlined %d cold blocks so far:\n", numBlocksSoFar);
 }
 
-const char *TR_ColdBlockOutlining::optDetailString() const throw() { return "O^O COLD BLOCK OUTLINING: "; }
+const char *TR_ColdBlockOutlining::optDetailString() const noexcept { return "O^O COLD BLOCK OUTLINING: "; }
 
 TR::Block *TR_BlockManipulator::breakFallThrough(TR::Block *faller, TR::Block *fallee, bool isOutlineSuperColdBlock)
 {
@@ -7973,7 +7973,7 @@ int32_t TR_TrivialDeadTreeRemoval::perform()
     //   return 1; // actual cost
 }
 
-const char *TR_TrivialDeadTreeRemoval::optDetailString() const throw() { return "O^O TRIVIAL DEAD TREE REMOVAL: "; }
+const char *TR_TrivialDeadTreeRemoval::optDetailString() const noexcept { return "O^O TRIVIAL DEAD TREE REMOVAL: "; }
 
 int32_t TR_TrivialBlockExtension::perform()
 {
@@ -8019,4 +8019,4 @@ int32_t TR_TrivialBlockExtension::performOnBlock(TR::Block *block)
     return 1;
 }
 
-const char *TR_TrivialBlockExtension::optDetailString() const throw() { return "O^O TRIVIAL BLOCK EXTENSION: "; }
+const char *TR_TrivialBlockExtension::optDetailString() const noexcept { return "O^O TRIVIAL BLOCK EXTENSION: "; }

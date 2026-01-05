@@ -131,7 +131,7 @@ public:
 
     OMR::Optimizations id();
     const char *name();
-    virtual const char *optDetailString() const throw() = 0;
+    virtual const char *optDetailString() const noexcept = 0;
 
     inline bool trace();
     void setTrace(bool trace = true);

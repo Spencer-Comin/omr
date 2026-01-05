@@ -30,7 +30,7 @@ OMR::SystemSegmentProvider::SystemSegmentProvider(size_t segmentSize, TR::RawAll
     , _segments(std::less<TR::MemorySegment>(), SegmentSetAllocator(rawAllocator))
 {}
 
-OMR::SystemSegmentProvider::~SystemSegmentProvider() throw()
+OMR::SystemSegmentProvider::~SystemSegmentProvider() noexcept
 {
     for (auto it = _segments.begin(); it != _segments.end(); ++it) {
         _rawAllocator.deallocate((*it).base());
@@ -54,7 +54,7 @@ TR::MemorySegment &OMR::SystemSegmentProvider::request(size_t requiredSize)
     }
 }
 
-void OMR::SystemSegmentProvider::release(TR::MemorySegment &segment) throw()
+void OMR::SystemSegmentProvider::release(TR::MemorySegment &segment) noexcept
 {
     auto it = _segments.find(segment);
     _rawAllocator.deallocate(segment.base());
@@ -63,12 +63,12 @@ void OMR::SystemSegmentProvider::release(TR::MemorySegment &segment) throw()
     _segments.erase(it);
 }
 
-size_t OMR::SystemSegmentProvider::bytesAllocated() const throw() { return _highWaterMark; }
+size_t OMR::SystemSegmentProvider::bytesAllocated() const noexcept { return _highWaterMark; }
 
-size_t OMR::SystemSegmentProvider::regionBytesAllocated() const throw() { return _highWaterMark; }
+size_t OMR::SystemSegmentProvider::regionBytesAllocated() const noexcept { return _highWaterMark; }
 
-size_t OMR::SystemSegmentProvider::systemBytesAllocated() const throw() { return _highWaterMark; }
+size_t OMR::SystemSegmentProvider::systemBytesAllocated() const noexcept { return _highWaterMark; }
 
-size_t OMR::SystemSegmentProvider::allocationLimit() const throw() { return static_cast<size_t>(-1); }
+size_t OMR::SystemSegmentProvider::allocationLimit() const noexcept { return static_cast<size_t>(-1); }
 
 void OMR::SystemSegmentProvider::setAllocationLimit(size_t) { return; }

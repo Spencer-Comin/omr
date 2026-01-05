@@ -58,7 +58,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     char *_optDetailsMessage;

@@ -2122,7 +2122,7 @@ bool TR_LoopReplicator::heuristics(LoopInfo *lInfo, bool dumb)
     return lInfo->_replicated;
 }
 
-const char *TR_LoopReplicator::optDetailString() const throw() { return "O^O LOOP REPLICATOR: "; }
+const char *TR_LoopReplicator::optDetailString() const noexcept { return "O^O LOOP REPLICATOR: "; }
 
 #undef COLOR_BLACK
 #undef COLOR_WHITE

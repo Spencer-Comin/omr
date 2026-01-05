@@ -25,14 +25,14 @@ OMR::PersistentAllocator::PersistentAllocator(const TR::PersistentAllocatorKit &
     : _rawAllocator(allocatorKit.rawAllocator)
 {}
 
-void *OMR::PersistentAllocator::allocate(size_t size, const std::nothrow_t tag, void *hint) throw()
+void *OMR::PersistentAllocator::allocate(size_t size, const std::nothrow_t tag, void *hint) noexcept
 {
     return _rawAllocator.allocate(size, tag, hint);
 }
 
 void *OMR::PersistentAllocator::allocate(size_t size, void *hint) { return _rawAllocator.allocate(size, hint); }
 
-void OMR::PersistentAllocator::deallocate(void *p, const size_t sizeHint) throw()
+void OMR::PersistentAllocator::deallocate(void *p, const size_t sizeHint) noexcept
 {
     _rawAllocator.deallocate(p, sizeHint);
 }

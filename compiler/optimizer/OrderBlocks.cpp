@@ -1988,7 +1988,7 @@ int32_t TR_OrderBlocks::perform()
     return 1; // actual cost
 }
 
-const char *TR_OrderBlocks::optDetailString() const throw() { return "O^O ORDER BLOCKS: "; }
+const char *TR_OrderBlocks::optDetailString() const noexcept { return "O^O ORDER BLOCKS: "; }
 
 void checkOrderingConsistency(TR::Compilation *comp)
 {
@@ -2256,4 +2256,4 @@ void TR_BlockShuffling::reverse(TR::Block **blocks)
             swap(blocks, upper, lower);
 }
 
-const char *TR_BlockShuffling::optDetailString() const throw() { return "O^O BLOCK SHUFFLING: "; }
+const char *TR_BlockShuffling::optDetailString() const noexcept { return "O^O BLOCK SHUFFLING: "; }

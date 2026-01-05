@@ -170,7 +170,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 class TR_TrivialInliner : public TR::Optimization {
@@ -183,7 +183,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 class TR_InnerPreexistenceInfo {

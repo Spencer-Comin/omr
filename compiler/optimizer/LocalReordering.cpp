@@ -646,4 +646,4 @@ bool TR_LocalReordering::isSubtreeCommoned(TR::Node *node)
     return false;
 }
 
-const char *TR_LocalReordering::optDetailString() const throw() { return "O^O LOCAL REORDERING: "; }
+const char *TR_LocalReordering::optDetailString() const noexcept { return "O^O LOCAL REORDERING: "; }

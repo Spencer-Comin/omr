@@ -88,7 +88,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     void printTrees();
     TR::TreeTop *placeComputationsOptimally(TR::Block *, TR::Node ***);

@@ -81,7 +81,7 @@ public:
     void assignColorsToSymbols(TR_BitVector *bv);
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 #endif

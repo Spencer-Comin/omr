@@ -34,11 +34,11 @@ class MemorySegment;
 class SegmentProvider {
 public:
     virtual TR::MemorySegment &request(size_t requiredSize) = 0;
-    virtual void release(TR::MemorySegment &segment) throw() = 0;
+    virtual void release(TR::MemorySegment &segment) noexcept = 0;
 
     size_t defaultSegmentSize() { return _defaultSegmentSize; }
 
-    virtual size_t bytesAllocated() const throw() = 0;
+    virtual size_t bytesAllocated() const noexcept = 0;
 
 protected:
     explicit SegmentProvider(size_t defaultSegmentSize)
@@ -52,7 +52,7 @@ protected:
     /*
      * Require knowledge of the concrete class in order to destroy SegmentProviders
      */
-    virtual ~SegmentProvider() throw();
+    virtual ~SegmentProvider() noexcept;
 
     size_t const _defaultSegmentSize;
 };

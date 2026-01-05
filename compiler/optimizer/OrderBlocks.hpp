@@ -81,7 +81,7 @@ public:
 
     virtual bool shouldPerform();
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     void doPeepHoleOptimizations(bool before, bool after)
     {
@@ -194,7 +194,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     int32_t _numBlocks;

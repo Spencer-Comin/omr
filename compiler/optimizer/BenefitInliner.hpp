@@ -42,7 +42,7 @@ public:
 
     virtual int32_t perform();
 
-    virtual const char *optDetailString() const throw() { return "O^O BENEFIT INLINER: "; }
+    virtual const char *optDetailString() const noexcept { return "O^O BENEFIT INLINER: "; }
 };
 
 class BenefitInlinerBase : public TR_InlinerBase {

@@ -2780,7 +2780,7 @@ void TR_LoopCanonicalizer::rewritePostToPreIncrementTestInBlock(TR::Block * cons
     right->recursivelyDecReferenceCount();
 }
 
-const char *TR_LoopCanonicalizer::optDetailString() const throw() { return "O^O LOOP CANONICALIZER: "; }
+const char *TR_LoopCanonicalizer::optDetailString() const noexcept { return "O^O LOOP CANONICALIZER: "; }
 
 bool TR_LoopTransformer::replaceAllInductionVariableComputations(TR::Block *loopInvariantBlock, TR_Structure *structure,
     TR::SymbolReference **newSymbolReference, TR::SymbolReference *inductionVarSymRef)
@@ -3726,7 +3726,7 @@ int32_t TR_RedundantInductionVarElimination::perform()
     return true;
 }
 
-const char *TR_RedundantInductionVarElimination::optDetailString() const throw()
+const char *TR_RedundantInductionVarElimination::optDetailString() const noexcept
 {
     return "O^O REDUNDANT INDUCTION VAR ELIMINATION: ";
 }
@@ -4129,4 +4129,4 @@ bool TR_LoopInverter::checkIfSymbolIsReadInKnownTree(TR::Node *node, int32_t sym
     return true;
 }
 
-const char *TR_LoopInverter::optDetailString() const throw() { return "O^O LOOP INVERTER: "; }
+const char *TR_LoopInverter::optDetailString() const noexcept { return "O^O LOOP INVERTER: "; }

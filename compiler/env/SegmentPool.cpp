@@ -30,7 +30,7 @@ TR::SegmentPool::SegmentPool(TR::SegmentProvider &backingProvider, size_t poolSi
     , _segmentStack(StackContainer(DequeAllocator(rawAllocator)))
 {}
 
-TR::SegmentPool::~SegmentPool() throw()
+TR::SegmentPool::~SegmentPool() noexcept
 {
     while (!_segmentStack.empty()) {
         TR_ASSERT(_storedSegments > 0, "Too many segments");
@@ -55,7 +55,7 @@ TR::MemorySegment &TR::SegmentPool::request(size_t requiredSize)
     return _backingProvider.request(requiredSize);
 }
 
-void TR::SegmentPool::release(TR::MemorySegment &segment) throw()
+void TR::SegmentPool::release(TR::MemorySegment &segment) noexcept
 {
     if (segment.size() == defaultSegmentSize() && _storedSegments < _poolSize) {
         try {

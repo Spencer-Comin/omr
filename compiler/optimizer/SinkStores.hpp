@@ -400,7 +400,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     virtual bool storeIsSinkingCandidate(TR::Block *block, TR::Node *node, int32_t symIdx, bool sinkIndirectLoads,

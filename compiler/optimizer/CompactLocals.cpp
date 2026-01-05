@@ -504,4 +504,4 @@ void TR_CompactLocals::doCompactLocals()
     cg()->setLocalsIG(_localsIG);
 }
 
-const char *TR_CompactLocals::optDetailString() const throw() { return "O^O COMPACT LOCALS: "; }
+const char *TR_CompactLocals::optDetailString() const noexcept { return "O^O COMPACT LOCALS: "; }

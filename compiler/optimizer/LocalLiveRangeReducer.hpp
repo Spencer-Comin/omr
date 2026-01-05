@@ -80,7 +80,7 @@ public:
     virtual int32_t perform();
     virtual void prePerformOnBlocks();
     virtual void postPerformOnBlocks();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     bool transformExtendedBlock(TR::TreeTop *, TR::TreeTop *);

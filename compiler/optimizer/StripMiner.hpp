@@ -54,7 +54,7 @@ public:
 
     virtual bool shouldPerform();
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     /* types */

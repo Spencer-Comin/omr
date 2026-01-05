@@ -33,7 +33,7 @@ namespace TR {
 class StackMemoryRegion : public Region {
 public:
     explicit StackMemoryRegion(TR_Memory &trMemory);
-    virtual ~StackMemoryRegion() throw();
+    virtual ~StackMemoryRegion() noexcept;
 
 private:
     TR_Memory &_trMemory;

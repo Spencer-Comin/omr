@@ -157,4 +157,4 @@ int32_t TR_AsyncCheckInsertion::perform()
     return 0;
 }
 
-const char *TR_AsyncCheckInsertion::optDetailString() const throw() { return "O^O ASYNC CHECK INSERTION: "; }
+const char *TR_AsyncCheckInsertion::optDetailString() const noexcept { return "O^O ASYNC CHECK INSERTION: "; }

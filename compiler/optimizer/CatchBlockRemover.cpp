@@ -154,4 +154,4 @@ int32_t TR_CatchBlockRemover::perform()
     return 1; // actual cost
 }
 
-const char *TR_CatchBlockRemover::optDetailString() const throw() { return "O^O CATCH BLOCK REMOVAL: "; }
+const char *TR_CatchBlockRemover::optDetailString() const noexcept { return "O^O CATCH BLOCK REMOVAL: "; }

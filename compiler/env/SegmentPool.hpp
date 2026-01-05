@@ -40,10 +40,10 @@ namespace TR {
 class SegmentPool : public TR::SegmentProvider {
 public:
     SegmentPool(TR::SegmentProvider &backingProvider, size_t cacheSize, TR::RawAllocator rawAllocator);
-    ~SegmentPool() throw();
+    ~SegmentPool() noexcept;
 
     virtual TR::MemorySegment &request(size_t requiredSize);
-    virtual void release(TR::MemorySegment &) throw();
+    virtual void release(TR::MemorySegment &) noexcept;
 
 private:
     size_t const _poolSize;

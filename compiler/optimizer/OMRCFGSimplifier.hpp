@@ -47,7 +47,7 @@ public:
     static TR::Optimization *create(TR::OptimizationManager *manager);
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     /**

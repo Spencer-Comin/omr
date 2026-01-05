@@ -84,7 +84,7 @@ void OMR::RecognizedCallTransformer::transform(TR::TreeTop *treetop)
     TR::TransformUtil::removeTree(comp(), treetop);
 }
 
-const char *OMR::RecognizedCallTransformer::optDetailString() const throw()
+const char *OMR::RecognizedCallTransformer::optDetailString() const noexcept
 {
     return "O^O RECOGNIZED CALL TRANSFORMER:";
 }

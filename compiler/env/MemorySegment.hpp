@@ -52,9 +52,9 @@ public:
         TR_ASSERT_FATAL(_allocated == 0 && other._next == &other, "Copying segment descriptor that's in use");
     }
 
-    ~MemorySegment() throw() {}
+    ~MemorySegment() noexcept {}
 
-    void *base() const throw() { return _segment; }
+    void *base() const noexcept { return _segment; }
 
     void *allocate(size_t bytes)
     {
@@ -64,19 +64,19 @@ public:
         return requested;
     }
 
-    void reset() throw() { _allocated = 0; }
+    void reset() noexcept { _allocated = 0; }
 
-    size_t remaining() const throw() { return _size - _allocated; }
+    size_t remaining() const noexcept { return _size - _allocated; }
 
-    size_t size() const throw() { return _size; }
+    size_t size() const noexcept { return _size; }
 
-    void link(MemorySegment &next) throw()
+    void link(MemorySegment &next) noexcept
     {
         TR_ASSERT_FATAL(_next == this, "Already linked");
         _next = &next;
     }
 
-    MemorySegment &unlink() throw()
+    MemorySegment &unlink() noexcept
     {
         TR_ASSERT_FATAL(_next != 0 && _next != this, "Already unlinked");
         MemorySegment &chain = *_next;
@@ -84,7 +84,7 @@ public:
         return chain;
     }
 
-    MemorySegment &next() const throw()
+    MemorySegment &next() const noexcept
     {
         TR_ASSERT_FATAL(_next, "_next should never be null");
         return *_next;

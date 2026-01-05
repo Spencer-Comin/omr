@@ -185,7 +185,7 @@ TR::Region &TR_Memory::registerStackRegion(TR::Region &stackMemoryRegion)
     return currentRegion;
 }
 
-void TR_Memory::unregisterStackRegion(TR::Region &current, TR::Region &previous) throw()
+void TR_Memory::unregisterStackRegion(TR::Region &current, TR::Region &previous) noexcept
 {
     TR_ASSERT(current == _stackMemoryRegion.get(), "Mismatched stack regions");
     _stackMemoryRegion = TR::ref(previous);

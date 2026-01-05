@@ -131,7 +131,7 @@ public:
      */
     int32_t perform();
 
-    virtual const char *optDetailString() const throw() { return "O^O LOAD EXTENSIONS: "; }
+    virtual const char *optDetailString() const noexcept { return "O^O LOAD EXTENSIONS: "; }
 
 private:
     /** \brief

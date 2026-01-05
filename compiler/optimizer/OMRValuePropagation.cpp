@@ -4405,7 +4405,7 @@ void TR::GlobalValuePropagation::processBlock(TR_StructureSubGraphNode *node, bo
     propagateOutputConstraints(node, lastTimeThrough, false, List1, &List2);
 }
 
-const char *TR::GlobalValuePropagation::optDetailString() const throw() { return "O^O GLOBAL VALUE PROPAGATION: "; }
+const char *TR::GlobalValuePropagation::optDetailString() const noexcept { return "O^O GLOBAL VALUE PROPAGATION: "; }
 
 TR::CFGEdge *OMR::ValuePropagation::findOutEdge(TR::CFGEdgeList &edges, TR::CFGNode *target)
 {
@@ -5236,7 +5236,7 @@ int32_t TR::ArraycopyTransformation::perform()
     return 1;
 }
 
-const char *TR::ArraycopyTransformation::optDetailString() const throw() { return "O^O ARRAY COPY TRANSFORMATION: "; }
+const char *TR::ArraycopyTransformation::optDetailString() const noexcept { return "O^O ARRAY COPY TRANSFORMATION: "; }
 
 void OMR::ValuePropagation::createNewBlockInfoForVersioning(TR::Block *block)
 {

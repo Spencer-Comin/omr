@@ -30,6 +30,6 @@ StackMemoryRegion::StackMemoryRegion(TR_Memory &trMemory)
     , _previousStackRegion(_trMemory.registerStackRegion(*this))
 {}
 
-StackMemoryRegion::~StackMemoryRegion() throw() { _trMemory.unregisterStackRegion(*this, _previousStackRegion); }
+StackMemoryRegion::~StackMemoryRegion() noexcept { _trMemory.unregisterStackRegion(*this, _previousStackRegion); }
 
 } // namespace TR

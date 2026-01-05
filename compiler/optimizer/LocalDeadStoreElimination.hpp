@@ -65,7 +65,7 @@ public:
     virtual int32_t performOnBlock(TR::Block *);
     virtual void prePerformOnBlocks();
     virtual void postPerformOnBlocks();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     virtual bool isNonRemovableStore(TR::Node *storeNode, bool &seenIdentityStore);

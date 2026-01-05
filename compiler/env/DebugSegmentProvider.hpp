@@ -50,13 +50,13 @@ namespace TR {
 class DebugSegmentProvider : public TR::SegmentAllocator {
 public:
     DebugSegmentProvider(size_t defaultSegmentSize, TR::RawAllocator rawAllocator);
-    ~DebugSegmentProvider() throw();
+    ~DebugSegmentProvider() noexcept;
     virtual TR::MemorySegment &request(size_t requiredSize);
-    virtual void release(TR::MemorySegment &segment) throw();
-    virtual size_t bytesAllocated() const throw();
-    virtual size_t regionBytesAllocated() const throw();
-    virtual size_t systemBytesAllocated() const throw();
-    virtual size_t allocationLimit() const throw();
+    virtual void release(TR::MemorySegment &segment) noexcept;
+    virtual size_t bytesAllocated() const noexcept;
+    virtual size_t regionBytesAllocated() const noexcept;
+    virtual size_t systemBytesAllocated() const noexcept;
+    virtual size_t allocationLimit() const noexcept;
     virtual void setAllocationLimit(size_t);
 
 private:

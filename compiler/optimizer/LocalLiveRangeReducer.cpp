@@ -947,4 +947,4 @@ void TR_LocalLiveRangeReduction::printOnVerifyError(TR_TreeRefInfo *optRefInfo, 
     }
 }
 
-const char *TR_LocalLiveRangeReduction::optDetailString() const throw() { return "O^O LOCAL LIVE RANGE REDUCTION: "; }
+const char *TR_LocalLiveRangeReduction::optDetailString() const noexcept { return "O^O LOCAL LIVE RANGE REDUCTION: "; }

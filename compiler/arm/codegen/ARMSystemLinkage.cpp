@@ -43,7 +43,7 @@
 #include "codegen/StackCheckFailureSnippet.hpp"
 
 struct UnsupportedParameterType : public virtual TR::CompilationException {
-    virtual const char *what() const throw() { return "Unsupported Parameter Type"; }
+    virtual const char *what() const noexcept { return "Unsupported Parameter Type"; }
 };
 
 TR::ARMLinkageProperties TR::ARMSystemLinkage::properties = {

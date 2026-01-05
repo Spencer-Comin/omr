@@ -1430,7 +1430,7 @@ void TR_RedundantAsyncCheckRemoval::solidifySoftAsyncChecks(TR_StructureSubGraph
     }
 }
 
-const char *TR_RedundantAsyncCheckRemoval::optDetailString() const throw()
+const char *TR_RedundantAsyncCheckRemoval::optDetailString() const noexcept
 {
     return "O^O REDUNDANT ASYNC CHECK REMOVAL: ";
 }

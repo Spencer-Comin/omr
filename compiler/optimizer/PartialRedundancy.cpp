@@ -2076,7 +2076,7 @@ TR::TreeTop *TR_PartialRedundancy::replaceOptimalSubNodes(TR::TreeTop *curTree, 
     return curTree;
 }
 
-const char *TR_PartialRedundancy::optDetailString() const throw() { return "O^O PARTIAL REDUNDANCY ELIMINATION: "; }
+const char *TR_PartialRedundancy::optDetailString() const noexcept { return "O^O PARTIAL REDUNDANCY ELIMINATION: "; }
 
 // Analysis for adjusting the optimal info/redundant info sets for each block
 // computed by PRE. This is required as exception ordering constraints have

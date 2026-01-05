@@ -290,7 +290,7 @@ public:
     virtual int32_t detectCanonicalizedPredictableLoops(TR_Structure *, TR_BitVector **, int32_t);
     virtual bool isStoreInRequiredForm(int32_t, TR_Structure *);
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     /**
@@ -1137,7 +1137,7 @@ class TR_LoopSpecializer : public TR_LoopVersioner {
 public:
     TR_LoopSpecializer(TR::OptimizationManager *manager);
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     static TR::Optimization *create(TR::OptimizationManager *manager)
     {

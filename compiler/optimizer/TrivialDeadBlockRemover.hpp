@@ -32,7 +32,7 @@ class Block;
 class TR_TrivialDeadBlockRemover : public TR::Optimization {
 public:
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     TR_TrivialDeadBlockRemover(TR::OptimizationManager *manager)
         : TR::Optimization(manager) {};

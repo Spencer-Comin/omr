@@ -152,8 +152,8 @@ public:
         const_iterator &operator=(const const_iterator &other);
         const_iterator &operator++();
         const_iterator operator++(int);
-        const_reference operator*() const throw();
-        const_pointer operator->() const throw();
+        const_reference operator*() const noexcept;
+        const_pointer operator->() const noexcept;
 
         friend bool operator==(const const_iterator &left, const const_iterator &right)
         {
@@ -189,8 +189,8 @@ public:
         iterator &operator=(const iterator &other);
         iterator &operator++();
         iterator operator++(int);
-        reference operator*() const throw();
-        pointer operator->() const throw();
+        reference operator*() const noexcept;
+        pointer operator->() const noexcept;
 
         friend bool operator==(const iterator &left, const iterator &right) { return left._element == right._element; }
 
@@ -221,7 +221,7 @@ public:
     //   template < typename InputIterator > void assign(InputIterator first, InputIterator last);
     //   void assign(size_type n, const value_type &value);
 
-    allocator_type get_allocator() const throw();
+    allocator_type get_allocator() const noexcept;
 
     iterator before_begin();
     const_iterator before_begin() const;
@@ -235,9 +235,9 @@ public:
     const_iterator end() const;
     inline const_iterator cend() const;
 
-    bool empty() const throw();
-    size_type size() const throw();
-    size_type max_size() const throw();
+    bool empty() const noexcept;
+    size_type size() const noexcept;
+    size_type max_size() const noexcept;
 
     reference front();
     const_reference front() const;
@@ -254,7 +254,7 @@ public:
 
     //   void resize(size_type newSize);
     //   void resize(size_type newSize, const value_type &value);
-    void clear() throw();
+    void clear() noexcept;
 
     //   void splice_after(const_iterator position, forward_list &donor);
     //   void splice_after(const_iterator position, forward_list &donor, const_iterator breakPoint);
@@ -345,7 +345,7 @@ template<typename T, typename Alloc> TR::forward_list<T, Alloc>::~forward_list()
 //    }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::allocator_type TR::forward_list<T, Alloc>::get_allocator() const throw()
+typename TR::forward_list<T, Alloc>::allocator_type TR::forward_list<T, Alloc>::get_allocator() const noexcept
 {
     return _allocator;
 }
@@ -402,13 +402,13 @@ typename TR::forward_list<T, Alloc>::const_iterator TR::forward_list<T, Alloc>::
     return const_cast<const forward_list &>(*this).end();
 }
 
-template<typename T, typename Alloc> bool TR::forward_list<T, Alloc>::empty() const throw()
+template<typename T, typename Alloc> bool TR::forward_list<T, Alloc>::empty() const noexcept
 {
     return _head._next == NULL;
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::size_type TR::forward_list<T, Alloc>::size() const throw()
+typename TR::forward_list<T, Alloc>::size_type TR::forward_list<T, Alloc>::size() const noexcept
 {
     size_type size(0);
     for (auto it = this->begin(); it != this->end(); ++it) {
@@ -418,7 +418,7 @@ typename TR::forward_list<T, Alloc>::size_type TR::forward_list<T, Alloc>::size(
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::size_type TR::forward_list<T, Alloc>::max_size() const throw()
+typename TR::forward_list<T, Alloc>::size_type TR::forward_list<T, Alloc>::max_size() const noexcept
 {
     return _allocator.max_size();
 }
@@ -522,7 +522,7 @@ typename TR::forward_list<T, Alloc>::iterator TR::forward_list<T, Alloc>::erase_
 //    {
 //    }
 
-template<typename T, typename Alloc> void TR::forward_list<T, Alloc>::clear() throw()
+template<typename T, typename Alloc> void TR::forward_list<T, Alloc>::clear() noexcept
 {
     while (_head._next != NULL) {
         ListElement *deadElement = static_cast<ListElement *>(_head._next);
@@ -620,15 +620,15 @@ typename TR::forward_list<T, Alloc>::const_iterator TR::forward_list<T, Alloc>::
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::const_reference TR::forward_list<T, Alloc>::const_iterator::operator*() const
-    throw()
+typename TR::forward_list<T, Alloc>::const_reference
+TR::forward_list<T, Alloc>::const_iterator::operator*() const noexcept
 {
     return static_cast<const ListElement &>(*_element)._value;
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::const_pointer TR::forward_list<T, Alloc>::const_iterator::operator->() const
-    throw()
+typename TR::forward_list<T, Alloc>::const_pointer
+TR::forward_list<T, Alloc>::const_iterator::operator->() const noexcept
 {
     return &static_cast<const ListElement &>(*_element)._value;
 }
@@ -677,13 +677,13 @@ typename TR::forward_list<T, Alloc>::iterator TR::forward_list<T, Alloc>::iterat
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::reference TR::forward_list<T, Alloc>::iterator::operator*() const throw()
+typename TR::forward_list<T, Alloc>::reference TR::forward_list<T, Alloc>::iterator::operator*() const noexcept
 {
     return static_cast<ListElement &>(*_element)._value;
 }
 
 template<typename T, typename Alloc>
-typename TR::forward_list<T, Alloc>::pointer TR::forward_list<T, Alloc>::iterator::operator->() const throw()
+typename TR::forward_list<T, Alloc>::pointer TR::forward_list<T, Alloc>::iterator::operator->() const noexcept
 {
     return &static_cast<ListElement &>(*_element)._value;
 }

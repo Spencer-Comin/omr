@@ -64,7 +64,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     bool requiresAnalysis();
@@ -80,7 +80,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     bool shouldPerformAnalysis();
@@ -132,7 +132,7 @@ public:
     bool addDeadStores(TR::Block *osrBlock, TR_BitVector &dead, bool init);
     void removeDeadStores(TR::Block *osrBlock, TR_BitVector &dead);
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 #endif

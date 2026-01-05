@@ -35,7 +35,7 @@ namespace TR {
  * Thrown when the compiler fails to allocate a code cache.
  */
 struct CodeCacheError : public virtual std::bad_alloc {
-    virtual const char *what() const throw() { return "Code Cache Error"; }
+    virtual const char *what() const noexcept { return "Code Cache Error"; }
 };
 
 /**
@@ -45,7 +45,7 @@ struct CodeCacheError : public virtual std::bad_alloc {
  * compiler can recover from, allowing compilation to proceed.
  */
 struct RecoverableCodeCacheError : public virtual std::bad_alloc {
-    virtual const char *what() const throw() { return "Recoverable Code Cache Error"; }
+    virtual const char *what() const noexcept { return "Recoverable Code Cache Error"; }
 };
 
 /**
@@ -54,7 +54,7 @@ struct RecoverableCodeCacheError : public virtual std::bad_alloc {
  * Thrown for an unrecoverable trampoline reservation or allocation error.
  */
 struct TrampolineError : public virtual std::bad_alloc {
-    virtual const char *what() const throw() { return "Trampoline Error"; }
+    virtual const char *what() const noexcept { return "Trampoline Error"; }
 };
 
 /**
@@ -64,7 +64,7 @@ struct TrampolineError : public virtual std::bad_alloc {
  * recover from, allowing compilation to proceed.
  */
 struct RecoverableTrampolineError : public virtual std::bad_alloc {
-    virtual const char *what() const throw() { return "Recoverable Trampoline Error"; }
+    virtual const char *what() const noexcept { return "Recoverable Trampoline Error"; }
 };
 
 } // namespace TR

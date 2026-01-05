@@ -122,7 +122,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     TR::TreeTop *createArrayNode(TR::TreeTop *tree, TR::TreeTop *newTree, TR::SymbolReference *srcRef,

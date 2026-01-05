@@ -4123,4 +4123,4 @@ int32_t TR_LoopReducer::perform()
     return 1; // actual cost
 }
 
-const char *TR_LoopReducer::optDetailString() const throw() { return "O^O LOOP REDUCER: "; }
+const char *TR_LoopReducer::optDetailString() const noexcept { return "O^O LOOP REDUCER: "; }

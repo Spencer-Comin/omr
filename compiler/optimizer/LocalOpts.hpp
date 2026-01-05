@@ -83,7 +83,7 @@ public:
     virtual int32_t performOnBlock(TR::Block *);
     int32_t process(TR::TreeTop *, TR::TreeTop *);
     bool hasSynergy(TR::Block *, TR::Node *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 class TR_BlockManipulator : public TR::Optimization {
@@ -111,7 +111,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     int32_t orderBlocksWithFrequencyInfo();
@@ -128,7 +128,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 /*
@@ -151,7 +151,7 @@ public:
 
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
     int32_t process(TR::TreeTop *, TR::TreeTop *);
 
 private:
@@ -184,7 +184,7 @@ public:
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
     virtual void prePerformOnBlocks();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
     int32_t process(TR::TreeTop *, TR::TreeTop *);
 };
 
@@ -203,7 +203,7 @@ public:
     void reduceArraysetStores(TR::Block *, TR_BitVector *, TR_BitVector *, TR_BitVector *);
     bool optimizeArraysetIfPossible(TR::Node *, TR::Node *, TR::TreeTop *, TR::Node *, TR_BitVector *, TR_BitVector *,
         TR_BitVector *, vcount_t, TR::TreeTop *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 /*
@@ -240,7 +240,7 @@ public:
         TR::Node *currentParent, TR_BitVector *writtenSymbols, vcount_t visitCount, vcount_t initialVisitCount,
         bool &compactionDone);
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     bool _isNextTree;
 };
@@ -330,7 +330,7 @@ public:
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
     int32_t process(TR::TreeTop *, TR::TreeTop *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 /*
@@ -401,7 +401,7 @@ public:
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
     virtual void prePerformOnBlocks();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
     int32_t process(TR::TreeTop *, TR::TreeTop *);
 
     void addParentToList(TR::Node *, List<TR::Node> *, TR::Node *, List<List<TR::Node> > *);
@@ -449,7 +449,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     double alpha;
@@ -658,7 +658,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     class ParmInfo {
@@ -738,7 +738,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     typedef TR::list<TR::Node *, TR::Region &> NodeList;
@@ -764,7 +764,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     void initialize();
@@ -788,7 +788,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     void reorderColdBlocks();
@@ -806,7 +806,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     // Use this as follows:
     //
@@ -836,7 +836,7 @@ public:
 
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     void transformBlock(TR::TreeTop *entryTree, TR::TreeTop *exitTree);
     void examineNode(TR::Node *node, vcount_t visitCount);
@@ -867,7 +867,7 @@ public:
 
     virtual int32_t perform();
     virtual int32_t performOnBlock(TR::Block *);
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 #endif

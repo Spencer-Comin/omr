@@ -681,4 +681,4 @@ bool OMR::Simplifier::isBoundDefinitelyGELength(TR::Node *boundChild, TR::Node *
     return false;
 }
 
-const char *OMR::Simplifier::optDetailString() const throw() { return "O^O TREE SIMPLIFICATION: "; }
+const char *OMR::Simplifier::optDetailString() const noexcept { return "O^O TREE SIMPLIFICATION: "; }

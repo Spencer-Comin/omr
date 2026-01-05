@@ -167,8 +167,8 @@ public:
 
     void *operator new(size_t s, TR::NodePool &nodePool);
     void operator delete(void *node, TR::NodePool &nodes);
-    void *operator new(size_t s, void *ptr) throw();
-    void operator delete(void *node, void *ptr) throw();
+    void *operator new(size_t s, void *ptr) noexcept;
+    void operator delete(void *node, void *ptr) noexcept;
 
     static TR::Node *copy(TR::Node *);
     static TR::Node *copy(TR::Node *, int32_t numChildren);

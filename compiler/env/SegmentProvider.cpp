@@ -21,4 +21,4 @@
 
 #include "env/SegmentProvider.hpp"
 
-TR::SegmentProvider::~SegmentProvider() throw() {}
+TR::SegmentProvider::~SegmentProvider() noexcept {}

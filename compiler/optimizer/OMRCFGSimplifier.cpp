@@ -1691,4 +1691,4 @@ bool OMR::CFGSimplifier::simplifyCondCodeBooleanStore(TR::Block *joinBlock, TR::
 // Returns true if it's safe to reverse the branch mask
 bool OMR::CFGSimplifier::canReverseBranchMask() { return false; }
 
-const char *OMR::CFGSimplifier::optDetailString() const throw() { return "O^O CFG SIMPLIFICATION: "; }
+const char *OMR::CFGSimplifier::optDetailString() const noexcept { return "O^O CFG SIMPLIFICATION: "; }

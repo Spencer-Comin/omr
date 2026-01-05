@@ -40,7 +40,7 @@ TR::DebugSegmentProvider::DebugSegmentProvider(size_t segmentSize, TR::RawAlloca
     , _segments(std::less<TR::MemorySegment>(), SegmentSetAllocator(rawAllocator))
 {}
 
-TR::DebugSegmentProvider::~DebugSegmentProvider() throw()
+TR::DebugSegmentProvider::~DebugSegmentProvider() noexcept
 {
     for (auto it = _segments.begin(); it != _segments.end(); it = _segments.begin()) {
 #if (defined(LINUX) && !defined(OMRZTPF)) || defined(__APPLE__) || defined(_AIX)
@@ -86,7 +86,7 @@ TR::MemorySegment &TR::DebugSegmentProvider::request(size_t requiredSize)
     }
 }
 
-void TR::DebugSegmentProvider::release(TR::MemorySegment &segment) throw()
+void TR::DebugSegmentProvider::release(TR::MemorySegment &segment) noexcept
 {
 #if (defined(LINUX) && !defined(OMRZTPF)) || defined(__APPLE__) || defined(_AIX)
     void *remap = mmap(segment.base(), segment.size(), PROT_NONE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
@@ -99,12 +99,12 @@ void TR::DebugSegmentProvider::release(TR::MemorySegment &segment) throw()
 #endif /* (defined(LINUX) && !defined(OMRZTPF)) || defined(__APPLE__) || defined(_AIX) */
 }
 
-size_t TR::DebugSegmentProvider::bytesAllocated() const throw() { return _bytesAllocated; }
+size_t TR::DebugSegmentProvider::bytesAllocated() const noexcept { return _bytesAllocated; }
 
-size_t TR::DebugSegmentProvider::regionBytesAllocated() const throw() { return _bytesAllocated; }
+size_t TR::DebugSegmentProvider::regionBytesAllocated() const noexcept { return _bytesAllocated; }
 
-size_t TR::DebugSegmentProvider::systemBytesAllocated() const throw() { return _bytesAllocated; }
+size_t TR::DebugSegmentProvider::systemBytesAllocated() const noexcept { return _bytesAllocated; }
 
-size_t TR::DebugSegmentProvider::allocationLimit() const throw() { return static_cast<size_t>(-1); }
+size_t TR::DebugSegmentProvider::allocationLimit() const noexcept { return static_cast<size_t>(-1); }
 
 void TR::DebugSegmentProvider::setAllocationLimit(size_t allocationLimit) { return; }

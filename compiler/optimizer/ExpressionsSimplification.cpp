@@ -873,7 +873,7 @@ void TR_ExpressionsSimplification::transformNode(TR::Node *srcNode, TR::Block *d
     return;
 }
 
-const char *TR_ExpressionsSimplification::optDetailString() const throw() { return "O^O EXPRESSION SIMPLIFICATION: "; }
+const char *TR_ExpressionsSimplification::optDetailString() const noexcept { return "O^O EXPRESSION SIMPLIFICATION: "; }
 
 void TR_ExpressionsSimplification::SimplificationCandidateTuple::print(TR::Compilation *comp)
 {

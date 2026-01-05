@@ -1341,4 +1341,4 @@ void TR_FieldPrivatizer::cleanupStringPeephole()
 #endif
 }
 
-const char *TR_FieldPrivatizer::optDetailString() const throw() { return "O^O FIELD PRIVATIZATION: "; }
+const char *TR_FieldPrivatizer::optDetailString() const noexcept { return "O^O FIELD PRIVATIZATION: "; }

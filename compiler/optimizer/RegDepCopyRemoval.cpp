@@ -438,4 +438,4 @@ void TR::RegDepCopyRemoval::generateRegcopyDebugCounter(const char *category)
     TR::DebugCounter::prependDebugCounter(comp(), fullName, _treetop);
 }
 
-const char *TR::RegDepCopyRemoval::optDetailString() const throw() { return "O^O REGISTER DEPENDENCY COPY REMOVAL: "; }
+const char *TR::RegDepCopyRemoval::optDetailString() const noexcept { return "O^O REGISTER DEPENDENCY COPY REMOVAL: "; }

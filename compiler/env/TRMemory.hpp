@@ -472,14 +472,14 @@ public:
 
     TR_PersistentMemory(void *jitConfig, TR::PersistentAllocator &persistentAllocator);
 
-    void *allocatePersistentMemory(size_t const size, ObjectType const ot = UnknownType) throw()
+    void *allocatePersistentMemory(size_t const size, ObjectType const ot = UnknownType) noexcept
     {
         _totalPersistentAllocations[ot] += size;
         void *persistentMemory = _persistentAllocator.get().allocate(size, std::nothrow);
         return persistentMemory;
     }
 
-    void freePersistentMemory(void *mem) throw() { _persistentAllocator.get().deallocate(mem); }
+    void freePersistentMemory(void *mem) noexcept { _persistentAllocator.get().deallocate(mem); }
 
     TR::PersistentInfo *getPersistentInfo() { return &_persistentInfo; }
 
@@ -507,7 +507,7 @@ public:
         return trPersistentMemory->allocatePersistentMemory(size, TR_MemoryBase::UnknownType);
     }
 
-    void deallocate(void *p, size_t sizeHint = 0) throw() { trPersistentMemory->freePersistentMemory(p); }
+    void deallocate(void *p, size_t sizeHint = 0) noexcept { trPersistentMemory->freePersistentMemory(p); }
 
     friend bool operator==(const TR_TypedPersistentAllocatorBase &left, const TR_TypedPersistentAllocatorBase &right)
     {
@@ -530,7 +530,7 @@ template<TR_MemoryBase::ObjectType O> class TR_TypedPersistentAllocator : public
 public:
     void *allocate(size_t size, void *hint = 0) { return trPersistentMemory->allocatePersistentMemory(size, O); }
 
-    void deallocate(void *p, size_t sizeHint = 0) throw() { trPersistentMemory->freePersistentMemory(p); }
+    void deallocate(void *p, size_t sizeHint = 0) noexcept { trPersistentMemory->freePersistentMemory(p); }
 
     friend bool operator==(const TR_TypedPersistentAllocator<O> &left, const TR_TypedPersistentAllocator<O> &right)
     {
@@ -630,7 +630,7 @@ private:
 
     /* These are intended to be used exclusively by TR::StackMemoryRegion. */
     TR::Region &registerStackRegion(TR::Region &stackRegion);
-    void unregisterStackRegion(TR::Region &current, TR::Region &previous) throw();
+    void unregisterStackRegion(TR::Region &current, TR::Region &previous) noexcept;
 
     TR_PersistentMemory *_trPersistentMemory;
     TR::Compilation *_comp;
@@ -647,7 +647,7 @@ inline void operator delete(void *p, TR_HeapMemory heapMemory) {}
 
 inline void operator delete(void *p, TR_StackMemory heapMemory) {}
 
-inline void operator delete(void *p, PERSISTENT_NEW_DECLARE) throw() {}
+inline void operator delete(void *p, PERSISTENT_NEW_DECLARE) noexcept {}
 
 inline void operator delete[](void *p, TR_HeapMemory heapMemory) {}
 
@@ -655,7 +655,7 @@ inline void operator delete[](void *p, TR_StackMemory heapMemory) {}
 
 inline void operator delete[](void *p, PERSISTENT_NEW_DECLARE) {}
 
-inline void *operator new(size_t size, PERSISTENT_NEW_DECLARE) throw()
+inline void *operator new(size_t size, PERSISTENT_NEW_DECLARE) noexcept
 {
     return TR_Memory::jitPersistentAlloc(size, TR_MemoryBase::UnknownType);
 }
@@ -726,16 +726,16 @@ inline void *TR_HeapMemory::allocate(size_t size, TR_MemoryBase::ObjectType ot)
     static void *jitPersistentAlloc(size_t s) { return TR_Memory::jitPersistentAlloc(s, a); } \
     static void jitPersistentFree(void *mem) { TR_Memory::jitPersistentFree(mem); }
 
-#define TR_PERSISTENT_NEW(a)                                                                                       \
-    void *operator new(size_t s, PERSISTENT_NEW_DECLARE) throw() { return TR_Memory::jitPersistentAlloc(s, a); }   \
-    void operator delete(void *p, PERSISTENT_NEW_DECLARE) throw() { TR_Memory::jitPersistentFree(p); }             \
-    void *operator new[](size_t s, PERSISTENT_NEW_DECLARE) throw() { return TR_Memory::jitPersistentAlloc(s, a); } \
-    void operator delete[](void *p, PERSISTENT_NEW_DECLARE) throw() { TR_Memory::jitPersistentFree(p); }           \
-    void *operator new(size_t s, TR_PersistentMemory *m) throw() { return m->allocatePersistentMemory(s, a); }     \
-    void operator delete(void *p, TR_PersistentMemory *m) throw() { m->freePersistentMemory(p); }                  \
-    void *operator new[](size_t s, TR_PersistentMemory *m) throw() { return m->allocatePersistentMemory(s, a); }   \
-    void operator delete[](void *p, TR_PersistentMemory *m) throw() { m->freePersistentMemory(p); }                \
-    void operator delete(void *p, size_t s) throw() { TR_ASSERT(false, "Invalid use of operator delete"); }
+#define TR_PERSISTENT_NEW(a)                                                                                        \
+    void *operator new(size_t s, PERSISTENT_NEW_DECLARE) noexcept { return TR_Memory::jitPersistentAlloc(s, a); }   \
+    void operator delete(void *p, PERSISTENT_NEW_DECLARE) noexcept { TR_Memory::jitPersistentFree(p); }             \
+    void *operator new[](size_t s, PERSISTENT_NEW_DECLARE) noexcept { return TR_Memory::jitPersistentAlloc(s, a); } \
+    void operator delete[](void *p, PERSISTENT_NEW_DECLARE) noexcept { TR_Memory::jitPersistentFree(p); }           \
+    void *operator new(size_t s, TR_PersistentMemory *m) noexcept { return m->allocatePersistentMemory(s, a); }     \
+    void operator delete(void *p, TR_PersistentMemory *m) noexcept { m->freePersistentMemory(p); }                  \
+    void *operator new[](size_t s, TR_PersistentMemory *m) noexcept { return m->allocatePersistentMemory(s, a); }   \
+    void operator delete[](void *p, TR_PersistentMemory *m) noexcept { m->freePersistentMemory(p); }                \
+    void operator delete(void *p, size_t s) noexcept { TR_ASSERT(false, "Invalid use of operator delete"); }
 
 #define TR_ALLOC_WITHOUT_NEW(a) TR_PERSISTENT_ALLOC_WITHOUT_NEW(a)
 

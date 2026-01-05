@@ -60,7 +60,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     void analyze(TR::Node *node, TR::Block *block);
 

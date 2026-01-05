@@ -30,4 +30,4 @@ TR_DeadStoreElimination::TR_DeadStoreElimination(TR::OptimizationManager *manage
     _mustUseUseDefInfo = true;
 }
 
-const char *TR_DeadStoreElimination::optDetailString() const throw() { return "O^O DEAD STORE ELIMINATION: "; }
+const char *TR_DeadStoreElimination::optDetailString() const noexcept { return "O^O DEAD STORE ELIMINATION: "; }

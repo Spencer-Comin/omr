@@ -96,7 +96,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     typedef TR::typed_allocator<std::pair<uint32_t const, TR::RegisterCandidate *>, TR::Region &>
         SymRefCandidateMapAllocator;
@@ -156,7 +156,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     void walkTreesAndCollectSymbolDataTypes();
     void visitNodeForDataType(TR::Node *);

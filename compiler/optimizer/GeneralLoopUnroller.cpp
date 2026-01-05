@@ -3996,7 +3996,7 @@ bool TR_GeneralLoopUnroller::branchContainsInductionVariable(TR::Node *node, TR:
     return false;
 }
 
-const char *TR_GeneralLoopUnroller::optDetailString() const throw() { return "O^O GENERAL LOOP UNROLLER: "; }
+const char *TR_GeneralLoopUnroller::optDetailString() const noexcept { return "O^O GENERAL LOOP UNROLLER: "; }
 
 #undef GET_PREV_CLONE_BLOCK
 #undef GET_PREV_CLONE_NODE

@@ -4903,7 +4903,7 @@ bool TR_LoopStrider::isMulTermEquivalentTo(int32_t k, TR::Node *node)
     return false;
 }
 
-const char *TR_LoopStrider::optDetailString() const throw() { return "O^O LOOP STRIDER: "; }
+const char *TR_LoopStrider::optDetailString() const noexcept { return "O^O LOOP STRIDER: "; }
 
 // end sign-extension
 
@@ -6437,7 +6437,7 @@ TR::Node *TR_InductionVariableAnalysis::getEntryValue(TR::Block *block, TR::Symb
     return defValue;
 }
 
-const char *TR_InductionVariableAnalysis::optDetailString() const throw()
+const char *TR_InductionVariableAnalysis::optDetailString() const noexcept
 {
     return "O^O INDUCTION VARIABLE ANALYSIS: ";
 }
@@ -6631,7 +6631,7 @@ int32_t TR_IVTypeTransformer::perform()
     return 0;
 }
 
-const char *TR_IVTypeTransformer::optDetailString() const throw()
+const char *TR_IVTypeTransformer::optDetailString() const noexcept
 {
     return "O^O INDUCTION VARIABLE TYPE TRANSFORMER: ";
 }

@@ -110,7 +110,7 @@ TR_LoopSpecializer::TR_LoopSpecializer(TR::OptimizationManager *manager)
     : TR_LoopVersioner(manager, true)
 {}
 
-const char *TR_LoopSpecializer::optDetailString() const throw() { return "O^O LOOP SPECIALIZER: "; }
+const char *TR_LoopSpecializer::optDetailString() const noexcept { return "O^O LOOP SPECIALIZER: "; }
 
 TR_LoopVersioner::TR_LoopVersioner(TR::OptimizationManager *manager, bool onlySpecialize, bool refineAliases)
     : TR_LoopTransformer(manager)
@@ -7799,7 +7799,7 @@ bool TR_LoopVersioner::isInverseConversions(TR::Node *node)
     return false;
 }
 
-const char *TR_LoopVersioner::optDetailString() const throw() { return "O^O LOOP VERSIONER: "; }
+const char *TR_LoopVersioner::optDetailString() const noexcept { return "O^O LOOP VERSIONER: "; }
 
 /**
  * \brief Initialize \p expr based on \p node.

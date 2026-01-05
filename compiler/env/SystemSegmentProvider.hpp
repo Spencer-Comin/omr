@@ -48,13 +48,13 @@ namespace OMR {
 class SystemSegmentProvider : public TR::SegmentAllocator {
 public:
     SystemSegmentProvider(size_t segmentSize, TR::RawAllocator rawAllocator);
-    ~SystemSegmentProvider() throw();
+    ~SystemSegmentProvider() noexcept;
     virtual TR::MemorySegment &request(size_t requiredSize);
-    virtual void release(TR::MemorySegment &segment) throw();
-    size_t bytesAllocated() const throw();
-    size_t regionBytesAllocated() const throw();
-    size_t systemBytesAllocated() const throw();
-    size_t allocationLimit() const throw();
+    virtual void release(TR::MemorySegment &segment) noexcept;
+    size_t bytesAllocated() const noexcept;
+    size_t regionBytesAllocated() const noexcept;
+    size_t systemBytesAllocated() const noexcept;
+    size_t allocationLimit() const noexcept;
     void setAllocationLimit(size_t);
 
 private:

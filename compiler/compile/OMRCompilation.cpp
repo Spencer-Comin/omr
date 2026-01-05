@@ -445,7 +445,7 @@ OMR::Compilation::Compilation(int32_t id, OMR_VMThread *omrVMThread, TR_FrontEnd
         _osrCompilationData = NULL;
 }
 
-OMR::Compilation::~Compilation() throw() {}
+OMR::Compilation::~Compilation() noexcept {}
 
 TR::KnownObjectTable *OMR::Compilation::getOrCreateKnownObjectTable()
 {

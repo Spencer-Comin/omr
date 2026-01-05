@@ -1321,4 +1321,4 @@ bool TR_IsolatedStoreElimination::markNodesAndLocateSideEffectIn(TR::Node *node,
     return toReturn;
 }
 
-const char *TR_IsolatedStoreElimination::optDetailString() const throw() { return "O^O ISOLATED STORE ELIMINATION: "; }
+const char *TR_IsolatedStoreElimination::optDetailString() const noexcept { return "O^O ISOLATED STORE ELIMINATION: "; }

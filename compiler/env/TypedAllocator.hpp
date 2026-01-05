@@ -66,9 +66,7 @@ public:
     }
 
 protected:
-    explicit typed_allocator(untyped_allocator backingAllocator) throw()
-        : _backingAllocator(backingAllocator)
-    {}
+    explicit typed_allocator(untyped_allocator backingAllocator) noexcept : _backingAllocator(backingAllocator) {}
 
     pointer allocate(size_type n, const_pointer hint) { return _backingAllocator.allocate(n); }
 
@@ -96,7 +94,7 @@ public:
 
     static const_pointer address(const_reference r) { return &r; }
 
-    explicit typed_allocator(untyped_allocator backingAllocator) throw()
+    explicit typed_allocator(untyped_allocator backingAllocator) noexcept
         : typed_allocator<void, untyped_allocator>(backingAllocator)
     {}
 
@@ -110,7 +108,7 @@ public:
         return static_cast<pointer>(typed_allocator<void, untyped_allocator>::allocate(n * sizeof(value_type), hint));
     }
 
-    typename typed_allocator<void, untyped_allocator>::value_type deallocate(pointer p, size_type n) throw()
+    typename typed_allocator<void, untyped_allocator>::value_type deallocate(pointer p, size_type n) noexcept
     {
         typed_allocator<void, untyped_allocator>::deallocate(p, n * sizeof(value_type));
     }
@@ -119,10 +117,10 @@ public:
 
     static void destroy(pointer p) { p->~value_type(); }
 
-    static size_type max_size() throw() { return std::numeric_limits<size_type>::max() / sizeof(value_type); }
+    static size_type max_size() noexcept { return std::numeric_limits<size_type>::max() / sizeof(value_type); }
 
 private:
-    typed_allocator() throw(); /* delete */
+    typed_allocator() noexcept; /* delete */
     typed_allocator &operator=(const typed_allocator &); /* delete */
 };
 

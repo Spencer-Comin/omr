@@ -2295,4 +2295,4 @@ TR::Node *TR_CopyPropagation::isValidRegLoad(TR::Node *rhsOfStoreDefNode, TR::Tr
     return (isRegLoad ? rhsOfStoreDefNode : NULL);
 }
 
-const char *TR_CopyPropagation::optDetailString() const throw() { return "O^O COPY PROPAGATION: "; }
+const char *TR_CopyPropagation::optDetailString() const noexcept { return "O^O COPY PROPAGATION: "; }

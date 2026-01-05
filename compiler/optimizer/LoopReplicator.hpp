@@ -79,7 +79,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
     // per loop structures
     struct BlockEntry : public TR_Link<BlockEntry> {

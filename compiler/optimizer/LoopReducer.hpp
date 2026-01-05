@@ -381,7 +381,7 @@ public:
 
     virtual TR_LoopReducer *asLoopReducer() { return this; }
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     void reduceNaturalLoop(TR_RegionStructure *whileLoop);

@@ -67,7 +67,7 @@ public:
     }
 
     virtual int32_t perform();
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 private:
     void replaceCopySymbolReferenceByOriginalIn(TR::SymbolReference *copySymRef, TR::Node *rhsOfStoreDefNode,

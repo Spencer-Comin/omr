@@ -54,7 +54,7 @@ public:
         return new (manager->allocator()) TR_DeadStoreElimination(manager);
     }
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 };
 
 #endif

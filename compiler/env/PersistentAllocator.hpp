@@ -49,9 +49,9 @@ class PersistentAllocator {
 public:
     PersistentAllocator(const TR::PersistentAllocatorKit &allocatorKit);
 
-    void *allocate(size_t size, const std::nothrow_t tag, void *hint = 0) throw();
+    void *allocate(size_t size, const std::nothrow_t tag, void *hint = 0) noexcept;
     void *allocate(size_t size, void *hint = 0);
-    void deallocate(void *p, const size_t sizeHint = 0) throw();
+    void deallocate(void *p, const size_t sizeHint = 0) noexcept;
 
     friend bool operator==(const PersistentAllocator &left, const PersistentAllocator &right)
     {
@@ -73,31 +73,31 @@ private:
 
 inline void *operator new(size_t size, OMR::PersistentAllocator &allocator) { return allocator.allocate(size); }
 
-inline void *operator new(size_t size, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) throw()
+inline void *operator new(size_t size, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) noexcept
 {
     return allocator.allocate(size, tag);
 }
 
 inline void *operator new[](size_t size, OMR::PersistentAllocator &allocator) { return operator new(size, allocator); }
 
-inline void *operator new[](size_t size, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) throw()
+inline void *operator new[](size_t size, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) noexcept
 {
     return operator new(size, allocator, tag);
 }
 
-inline void operator delete(void *ptr, OMR::PersistentAllocator &allocator) throw() { allocator.deallocate(ptr); }
+inline void operator delete(void *ptr, OMR::PersistentAllocator &allocator) noexcept { allocator.deallocate(ptr); }
 
-inline void operator delete(void *ptr, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) throw()
+inline void operator delete(void *ptr, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) noexcept
 {
     allocator.deallocate(ptr);
 }
 
-inline void operator delete[](void *ptr, OMR::PersistentAllocator &allocator) throw()
+inline void operator delete[](void *ptr, OMR::PersistentAllocator &allocator) noexcept
 {
     operator delete(ptr, allocator);
 }
 
-inline void operator delete[](void *ptr, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) throw()
+inline void operator delete[](void *ptr, OMR::PersistentAllocator &allocator, const std::nothrow_t &tag) noexcept
 {
     operator delete(ptr, allocator, tag);
 }

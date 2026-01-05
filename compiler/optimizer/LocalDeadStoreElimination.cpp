@@ -993,7 +993,7 @@ void TR::LocalDeadStoreElimination::killStoreNodes(TR::Node *node)
     }
 }
 
-const char *TR::LocalDeadStoreElimination::optDetailString() const throw()
+const char *TR::LocalDeadStoreElimination::optDetailString() const noexcept
 {
     return "O^O LOCAL DEAD STORE ELIMINATION: ";
 }

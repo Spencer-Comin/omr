@@ -1823,7 +1823,7 @@ bool TR_GeneralSinkStores::storeIsSinkingCandidate(TR::Block *block, TR::Node *n
             comp()->getVisitCount()));
 }
 
-const char *TR_GeneralSinkStores::optDetailString() const throw() { return "O^O GENERAL SINK STORES: "; }
+const char *TR_GeneralSinkStores::optDetailString() const noexcept { return "O^O GENERAL SINK STORES: "; }
 
 // return true if it is safe to propagate the store thru the moved stores in the edge placement
 bool TR_SinkStores::isSafeToSinkThruEdgePlacement(int symIdx, TR::CFGNode *block, TR::CFGNode *succBlock,

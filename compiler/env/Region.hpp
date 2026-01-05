@@ -72,7 +72,7 @@ class Region {
 public:
     Region(TR::SegmentProvider &segmentProvider, TR::RawAllocator rawAllocator);
     Region(const Region &prototype);
-    virtual ~Region() throw();
+    virtual ~Region() noexcept;
     void *allocate(const size_t bytes, void *hint = 0);
 
     /**
@@ -139,7 +139,7 @@ public:
         _lastDestroyer = new (*this) TypedDestroyer<T>(_lastDestroyer, obj);
     }
 
-    void deallocate(void *allocation, size_t = 0) throw();
+    void deallocate(void *allocation, size_t = 0) noexcept;
 
     static void reset(TR::Region &targetRegion, TR::Region &prototypeRegion)
     {

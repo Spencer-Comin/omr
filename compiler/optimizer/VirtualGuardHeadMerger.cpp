@@ -631,4 +631,4 @@ void TR_VirtualGuardHeadMerger::tailSplitBlock(TR::Block *block, TR::Block *cold
     optimizer()->setValueNumberInfo(NULL);
 }
 
-const char *TR_VirtualGuardHeadMerger::optDetailString() const throw() { return "O^O VIRTUAL GUARD HEAD MERGER: "; }
+const char *TR_VirtualGuardHeadMerger::optDetailString() const noexcept { return "O^O VIRTUAL GUARD HEAD MERGER: "; }

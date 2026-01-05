@@ -60,7 +60,7 @@ public:
     TypeDictionary();
     TypeDictionary(const TypeDictionary &src);
 
-    ~TypeDictionary() throw();
+    ~TypeDictionary() noexcept;
 
     TR::IlType *LookupStruct(const char *structName);
     TR::IlType *LookupUnion(const char *unionName);

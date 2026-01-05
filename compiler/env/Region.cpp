@@ -45,7 +45,7 @@ Region::Region(const Region &prototype)
     , _lastDestroyer(NULL)
 {}
 
-Region::~Region() throw()
+Region::~Region() noexcept
 {
     /*
      * Destroy all object instances that depend on the region
@@ -80,5 +80,5 @@ void *Region::allocate(size_t const size, void *hint)
     return _currentSegment.get().allocate(roundedSize);
 }
 
-void Region::deallocate(void *allocation, size_t) throw() {}
+void Region::deallocate(void *allocation, size_t) noexcept {}
 } // namespace TR

@@ -590,7 +590,7 @@ bool TR_OSRDefAnalysis::requiresAnalysis()
     return methodSymbol->sharesStackSlots(comp());
 }
 
-const char *TR_OSRDefAnalysis::optDetailString() const throw() { return "O^O OSR DEF ANALYSIS: "; }
+const char *TR_OSRDefAnalysis::optDetailString() const noexcept { return "O^O OSR DEF ANALYSIS: "; }
 
 // Not needed anymore. I'll keep it commented out just in case it's needed in the future.
 // Check whether the first real non-profiling tree top in the block
@@ -1665,7 +1665,7 @@ void TR_OSRLiveRangeAnalysis::buildOSRLiveRangeInfo(TR::Node *node, TR_BitVector
     }
 }
 
-const char *TR_OSRLiveRangeAnalysis::optDetailString() const throw() { return "O^O OSR LIVE RANGE ANALYSIS: "; }
+const char *TR_OSRLiveRangeAnalysis::optDetailString() const noexcept { return "O^O OSR LIVE RANGE ANALYSIS: "; }
 
 /**
  * Collect the dead stores in the provided block. Either initialize the provided bitvector with
@@ -1874,4 +1874,4 @@ int32_t TR_OSRExceptionEdgeRemoval::perform()
     return 1;
 }
 
-const char *TR_OSRExceptionEdgeRemoval::optDetailString() const throw() { return "O^O OSR EXCEPTION EDGE REMOVAL: "; }
+const char *TR_OSRExceptionEdgeRemoval::optDetailString() const noexcept { return "O^O OSR EXCEPTION EDGE REMOVAL: "; }

@@ -185,7 +185,7 @@ void TR_IndexExprManipulator::rewriteIndexExpression(TR_PrimaryInductionVariable
     }
 }
 
-const char *TR_IndexExprManipulator::optDetailString() const throw()
+const char *TR_IndexExprManipulator::optDetailString() const noexcept
 {
     return "O^O ARRAY INDEX EXPRESSION MANIPULATION: ";
 }

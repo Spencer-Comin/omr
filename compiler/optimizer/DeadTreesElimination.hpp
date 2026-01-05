@@ -85,7 +85,7 @@ public:
     virtual bool fixUpTree(TR::Node *node, TR::TreeTop *treeTop, TR::NodeChecklist &visited, bool &highGlobalIndex,
         vcount_t evaluatedVisitCount);
 
-    virtual const char *optDetailString() const throw();
+    virtual const char *optDetailString() const noexcept;
 
 protected:
     virtual TR::TreeTop *findLastTreetop(TR::Block *block, TR::TreeTop *prevTree);

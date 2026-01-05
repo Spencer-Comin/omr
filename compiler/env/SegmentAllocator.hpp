@@ -30,9 +30,9 @@ namespace TR {
 
 class SegmentAllocator : public SegmentProvider {
 public:
-    virtual size_t regionBytesAllocated() const throw() = 0;
-    virtual size_t systemBytesAllocated() const throw() = 0;
-    virtual size_t allocationLimit() const throw() = 0;
+    virtual size_t regionBytesAllocated() const noexcept = 0;
+    virtual size_t systemBytesAllocated() const noexcept = 0;
+    virtual size_t allocationLimit() const noexcept = 0;
     virtual void setAllocationLimit(size_t) = 0;
 
 protected:
@@ -44,7 +44,7 @@ protected:
         : SegmentProvider(other)
     {}
 
-    virtual ~SegmentAllocator() throw();
+    virtual ~SegmentAllocator() noexcept;
 };
 
 } // namespace TR

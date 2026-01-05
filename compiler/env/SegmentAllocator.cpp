@@ -21,4 +21,4 @@
 
 #include "env/SegmentAllocator.hpp"
 
-TR::SegmentAllocator::~SegmentAllocator() throw() {}
+TR::SegmentAllocator::~SegmentAllocator() noexcept {}

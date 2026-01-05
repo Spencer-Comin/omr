@@ -532,7 +532,7 @@ OMR::TypeDictionary::TypeDictionary(const TypeDictionary &src)
     , _unionsByName(str_comparator, trMemory()->heapMemoryRegion())
 {}
 
-OMR::TypeDictionary::~TypeDictionary() throw()
+OMR::TypeDictionary::~TypeDictionary() noexcept
 {
     // Cleanup allocations in _memoryRegion *before* its destroyed in
     // the TypeDictionary::MemoryManager destructor

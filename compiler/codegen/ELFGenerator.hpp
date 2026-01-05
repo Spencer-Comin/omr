@@ -65,7 +65,7 @@ public:
     /**
      * ELFGenerator destructor
      */
-    ~ELFGenerator() throw() {};
+    ~ELFGenerator() noexcept {};
 
 protected:
 #if defined(TR_TARGET_64BIT)
@@ -286,7 +286,7 @@ public:
     /**
      * ELFExecutableGenerator destructor
      */
-    ~ELFExecutableGenerator() throw() {}
+    ~ELFExecutableGenerator() noexcept {}
 
 protected:
     /**
@@ -326,7 +326,7 @@ class ELFRelocatableGenerator : public ELFGenerator {
 public:
     ELFRelocatableGenerator(TR::RawAllocator rawAllocator, uint8_t const *codeStart, size_t codeSize);
 
-    ~ELFRelocatableGenerator() throw() {}
+    ~ELFRelocatableGenerator() noexcept {}
 
 protected:
     /**

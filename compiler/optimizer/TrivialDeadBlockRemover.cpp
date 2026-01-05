@@ -145,4 +145,4 @@ int32_t TR_TrivialDeadBlockRemover::perform()
     return 1;
 }
 
-const char *TR_TrivialDeadBlockRemover::optDetailString() const throw() { return "O^O TRIVIAL DEAD BLOCK REMOVAL: "; }
+const char *TR_TrivialDeadBlockRemover::optDetailString() const noexcept { return "O^O TRIVIAL DEAD BLOCK REMOVAL: "; }

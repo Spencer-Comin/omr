@@ -183,8 +183,6 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
      "D<string>\tDescription of the particular block shuffling operations to perform; see source code for more "
         "details", TR::Options::setString, offsetof(OMR::Options, _blockShufflingSequence), 0, "P%s" },
     { "breakAfterCompile", "D\traise trap when method compilation ends", SET_OPTION_BIT(TR_BreakAfterCompile), "F" },
-    { "breakAfter2DArrayWithInlineAllocators",
-     "D\tinsert breakpoint instruction after 2D array allocation with inline allocators", SET_OPTION_BIT(TR_BreakAfter2DArrayWithInlineAllocators), "F" },
     { "breakBeforeCompile", "D\traise trap when method compilation begins", SET_OPTION_BIT(TR_BreakBeforeCompile),
      "F" },
 
@@ -1825,6 +1823,8 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
      TR::Options::setStaticNumeric, (intptr_t)&OMR::Options::_stopThrottlingTime, 0, "F%d", NOT_IN_SUBSET },
     { "storeSinkingLastOpt=", "C<nnn>\tLast store sinking optimization to perform", TR::Options::set32BitNumeric,
      offsetof(OMR::Options, _storeSinkingLastOpt), static_cast<uintptr_t>(-1), "F%d" },
+    { "store2DArrayWithInlineAllocators",
+     "D\tinsert breakpoint instruction after 2D array allocation with inline allocators", SET_OPTION_BIT(TR_Store2DArrayWithInlineAllocators), "F" },
     { "stressTrampolines", "O\tenables trampolines to always be used for method and helper calls",
      SET_OPTION_BIT(TR_StressTrampolines), "F" },
     { "subtractLoopyMethodCounts", "C\tSubtract loopy method counts instead of dividing",

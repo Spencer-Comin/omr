@@ -183,6 +183,8 @@ TR::OptionTable OMR::Options::_jitOptions[] = {
      "D<string>\tDescription of the particular block shuffling operations to perform; see source code for more "
         "details", TR::Options::setString, offsetof(OMR::Options, _blockShufflingSequence), 0, "P%s" },
     { "breakAfterCompile", "D\traise trap when method compilation ends", SET_OPTION_BIT(TR_BreakAfterCompile), "F" },
+    { "breakAfter2DArrayWithInlineAllocators",
+     "D\tinsert breakpoint instruction after 2D array allocation with inline allocators", SET_OPTION_BIT(TR_BreakAfter2DArrayWithInlineAllocators), "F" },
     { "breakBeforeCompile", "D\traise trap when method compilation begins", SET_OPTION_BIT(TR_BreakBeforeCompile),
      "F" },
 

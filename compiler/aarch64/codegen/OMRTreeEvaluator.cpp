@@ -5602,20 +5602,28 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
 
     node->setRegister(tempReg);
 
+    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
     TR::InstOpCode::Mnemonic op;
     int32_t size;
+    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
+    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
+    bool canUseLDAR = tempMR->getUnresolvedSnippet() == NULL && !cg->comp()->getOption(TR_DisableLDARVolatile);
 
     if (TR::Compiler->om.generateCompressedObjectHeaders()
         && (node->getSymbol()->isClassObject()
             || (node->getSymbolReference() == comp->getSymRefTab()->findVftSymbolRef()))) {
-        op = TR::InstOpCode::ldrimmw;
+        op = (needSync && canUseLDAR) ? TR::InstOpCode::ldarw : TR::InstOpCode::ldrimmw;
         size = 4;
     } else {
-        op = TR::InstOpCode::ldrimmx;
+        op = (needSync && canUseLDAR) ? TR::InstOpCode::ldarx : TR::InstOpCode::ldrimmx;
         size = 8;
     }
-    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
+
     tempMR->validateImmediateOffsetAlignment(node, size, cg);
+
+    if (needSync && canUseLDAR) {
+        tempMR->simplify(node, cg);
+    }
 
     generateTrg1MemInstruction(cg, op, node, tempReg, tempMR);
 
@@ -5623,9 +5631,7 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
         TR::TreeEvaluator::generateVFTMaskInstruction(cg, node, tempReg);
     }
 
-    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
-    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
-    if (needSync) {
+    if (needSync && !canUseLDAR) {
         generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
     }
 

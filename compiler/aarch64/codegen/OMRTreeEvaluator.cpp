@@ -5802,14 +5802,13 @@ TR::Register *OMR::ARM64::TreeEvaluator::istoreEvaluator(TR::Node *node, TR::Cod
 
         if (addend != NULL) {
             TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, iload);
-            tempMR->simplify(cg, iload);
+            tempMR->simplify(iload, cg);
 
             TR::Register *valueReg;
             if (isSub) {
                 if (addend->getOpCode().isLoadConst()) {
                     valueReg = cg->allocateRegister();
-                    generateLoadConstantInstruction(cg, TR::InstOpCode::movzxw, node, -addend->getInt(), valueReg,
-                        true);
+                    loadConstant32(cg, addend, -addend->getInt(), valueReg);
                     cg->decReferenceCount(addend);
                 } else {
                     TR::Register *addRegister = cg->evaluate(addend);

@@ -20,6 +20,7 @@
  *******************************************************************************/
 
 #include <utility>
+#include "MemoryReference.hpp"
 #include "codegen/ARM64HelperCallSnippet.hpp"
 #include "codegen/ARM64Instruction.hpp"
 #include "codegen/ARM64OutOfLineCodeSection.hpp"
@@ -5766,7 +5767,70 @@ TR::Register *OMR::ARM64::TreeEvaluator::istoreEvaluator(TR::Node *node, TR::Cod
 {
     TR::Compilation *comp = cg->comp();
 
-    commonStoreEvaluator(node, TR::InstOpCode::strimmw, 4, cg);
+    static const bool disableLSE = feGetEnv("TR_aarch64DisableLSE") != NULL;
+    if (comp->target().cpu.supportsFeature(OMR_FEATURE_ARM64_LSE) && (!disableLSE)) {
+        // increments of the following form can be done with ldadd
+        //   istore sym
+        //     isub/iadd
+        //       iload sym
+        //       addend
+        TR::Node *valueChild;
+        TR::Node *addend = NULL;
+        TR::Node *iload = NULL;
+        if (node->getOpCode().isIndirect()) {
+            valueChild = node->getSecondChild();
+        } else {
+            valueChild = node->getFirstChild();
+        }
+        TR::SymbolReference *symRef = node->getSymbolReference();
+        TR::Symbol *sym = symRef->getSymbol();
+
+        bool isSub = false;
+        if (valueChild->getRegister() == NULL && (valueChild->getOpCode().isSub() || valueChild->getOpCode().isAdd())) {
+            TR::Node *firstChild = valueChild->getFirstChild();
+            TR::Node *secondChild = valueChild->getSecondChild();
+            isSub = valueChild->getOpCode().isSub();
+            if (firstChild->getOpCode().isLoadVar() && firstChild->getSymbolReference()->getSymbol() == sym) {
+                addend = secondChild;
+                iload = firstChild;
+            } else if (!isSub && secondChild->getOpCode().isLoadVar()
+                && secondChild->getSymbolReference()->getSymbol() == sym) {
+                addend = firstChild;
+                iload = secondChild;
+            }
+        }
+
+        if (addend != NULL) {
+            TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, iload);
+            tempMR->simplify(cg, iload);
+
+            TR::Register *valueReg;
+            if (isSub) {
+                if (addend->getOpCode().isLoadConst()) {
+                    valueReg = cg->allocateRegister();
+                    generateLoadConstantInstruction(cg, TR::InstOpCode::movzxw, node, -addend->getInt(), valueReg,
+                        true);
+                    cg->decReferenceCount(addend);
+                } else {
+                    TR::Register *addRegister = cg->evaluate(addend);
+                    valueReg = (addend->getReferenceCount() == 1) ? addRegister : cg->allocateRegister();
+                    generateNegInstruction(cg, node, valueReg, addRegister);
+                }
+            } else {
+                valueReg = cg->evaluate(addend);
+            }
+
+            TR::Register *newValueReg = cg->allocateRegister();
+            generateTrg1MemSrc1Instruction(cg,
+                sym->isAtLeastOrStrongerThanAcquireRelease() ? TR::InstOpCode::ldaddalw : TR::InstOpCode::ldaddw, node,
+                valueReg, tempMR, newValueReg);
+            valueChild->setRegister(newValueReg);
+        } else {
+            commonStoreEvaluator(node, TR::InstOpCode::strimmw, 4, cg);
+        }
+    } else {
+        commonStoreEvaluator(node, TR::InstOpCode::strimmw, 4, cg);
+    }
 
     if (comp->useCompressedPointers() && node->getOpCode().isIndirect())
         node->setStoreAlreadyEvaluated(true);

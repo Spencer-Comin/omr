@@ -411,7 +411,7 @@ void OMR::ARM64::MemoryReference::simplify(TR::Node *node, TR::CodeGenerator *cg
     if (_indexRegister != NULL)
         self()->moveIndexToBase(node, cg);
 
-    if (self()->getOffset() != 0)
+    if (self()->getOffset() != 0 || self()->hasDelayedOffset())
         self()->moveOffsetToBase(node, cg, true);
 }
 

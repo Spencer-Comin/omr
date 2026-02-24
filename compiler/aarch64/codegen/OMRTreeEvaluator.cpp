@@ -5777,42 +5777,48 @@ TR::Register *OMR::ARM64::TreeEvaluator::istoreEvaluator(TR::Node *node, TR::Cod
         TR::Node *valueChild;
         TR::Node *addend = NULL;
         TR::Node *iload = NULL;
+
         if (node->getOpCode().isIndirect()) {
             valueChild = node->getSecondChild();
         } else {
             valueChild = node->getFirstChild();
         }
+
         TR::SymbolReference *symRef = node->getSymbolReference();
-        TR::Symbol *sym = symRef->getSymbol();
 
         bool isSub = false;
         if (valueChild->getRegister() == NULL && (valueChild->getOpCode().isSub() || valueChild->getOpCode().isAdd())) {
             TR::Node *firstChild = valueChild->getFirstChild();
             TR::Node *secondChild = valueChild->getSecondChild();
             isSub = valueChild->getOpCode().isSub();
-            if (firstChild->getOpCode().isLoadVar() && firstChild->getSymbolReference()->getSymbol() == sym) {
+            if (firstChild->getOpCode().isLoadVar() && firstChild->getSymbolReference() == symRef) {
                 addend = secondChild;
                 iload = firstChild;
-            } else if (!isSub && secondChild->getOpCode().isLoadVar()
-                && secondChild->getSymbolReference()->getSymbol() == sym) {
+            } else if (!isSub && secondChild->getOpCode().isLoadVar() && secondChild->getSymbolReference() == symRef) {
                 addend = firstChild;
                 iload = secondChild;
             }
         }
 
-        if (addend != NULL) {
+        if (addend != NULL && !symRef->isUnresolved()) {
             TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, iload);
             tempMR->simplify(iload, cg);
 
             TR::Register *valueReg;
+            bool stopUsingValueReg = false;
             if (isSub) {
                 if (addend->getOpCode().isLoadConst()) {
                     valueReg = cg->allocateRegister();
+                    stopUsingValueReg = true;
                     loadConstant32(cg, addend, -addend->getInt(), valueReg);
-                    cg->decReferenceCount(addend);
                 } else {
                     TR::Register *addRegister = cg->evaluate(addend);
-                    valueReg = (addend->getReferenceCount() == 1) ? addRegister : cg->allocateRegister();
+                    if (addend->getReferenceCount() == 1) {
+                        valueReg = addRegister;
+                    } else {
+                        valueReg = cg->allocateRegister();
+                        stopUsingValueReg = true;
+                    }
                     generateNegInstruction(cg, node, valueReg, addRegister);
                 }
             } else {
@@ -5821,9 +5827,27 @@ TR::Register *OMR::ARM64::TreeEvaluator::istoreEvaluator(TR::Node *node, TR::Cod
 
             TR::Register *newValueReg = cg->allocateRegister();
             generateTrg1MemSrc1Instruction(cg,
-                sym->isAtLeastOrStrongerThanAcquireRelease() ? TR::InstOpCode::ldaddalw : TR::InstOpCode::ldaddw, node,
-                valueReg, tempMR, newValueReg);
+                symRef->getSymbol()->isAtLeastOrStrongerThanAcquireRelease() ? TR::InstOpCode::ldaddalw
+                                                                             : TR::InstOpCode::ldaddw,
+                node, valueReg, tempMR, newValueReg);
+
             valueChild->setRegister(newValueReg);
+
+            if (stopUsingValueReg) {
+                cg->stopUsingRegister(valueReg);
+            }
+
+            if (node->getOpCode().isIndirect()) {
+                valueChild = node->getSecondChild();
+            }
+
+            cg->decReferenceCount(addend);
+            cg->decReferenceCount(iload);
+            cg->decReferenceCount(valueChild);
+            if (node->getOpCode().isIndirect()) {
+                cg->recursivelyDecReferenceCount(node->getFirstChild());
+            }
+
         } else {
             commonStoreEvaluator(node, TR::InstOpCode::strimmw, 4, cg);
         }

@@ -5521,6 +5521,40 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
     return commonLoadEvaluator(node, op, size, tempReg, cg);
 }
 
+/**
+ * @brief Helper to materialize the effective address of a memory reference into a register
+ *
+ * @param[in] cg: CodeGenerator
+ * @param[in] node: node
+ * @param[in] addrReg: target register
+ * @param[in] memRef: memory reference
+ * @param[in] cursor: instruction cursor
+ *
+ * @return instruction cursor
+ */
+static TR::Instruction *generateLoadEffectiveAddress(TR::CodeGenerator *cg, TR::Node *node, TR::Register *addrReg,
+    TR::MemoryReference *memRef, TR::Instruction *cursor = NULL)
+{
+    if (memRef->getIndexRegister() != NULL) {
+        cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
+            memRef->getIndexRegister(), cursor);
+    } else if (memRef->hasDelayedOffset()) {
+        cursor = generateTrg1MemInstruction(cg, TR::InstOpCode::addimmx, node, addrReg, memRef, cursor);
+    } else {
+        int32_t offset = memRef->getOffset();
+        if (offset >= 0 && constantIsUnsignedImm12(offset)) {
+            cursor = generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, addrReg,
+                memRef->getBaseRegister(), offset, cursor);
+        } else {
+            cursor = loadConstant64(cg, node, offset, addrReg, cursor);
+            cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
+                addrReg, cursor);
+        }
+    }
+
+    return cursor;
+}
+
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg,
     TR::CodeGenerator *cg)
 {
@@ -5534,7 +5568,16 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
         = tempMR->getUnresolvedSnippet() == NULL && size <= 8 && !cg->comp()->getOption(TR_DisableLDARVolatile);
 
     if (needSync && canUseLDAR) {
-        tempMR->simplify(node, cg);
+        // ldar doesn't support index registers or offsets, so materialize the address if needed
+        TR::MemoryReference *ldarMR;
+        TR::Register *addrReg = NULL;
+        if (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset()) {
+            addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
+            generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
+            ldarMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
+        } else {
+            ldarMR = tempMR;
+        }
 
         TR::Register *targetGPR = targetReg;
         if (targetReg->getKind() != TR_GPR) {
@@ -5545,7 +5588,10 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
         static const TR::InstOpCode::Mnemonic ldarOpCodes[]
             = { TR::InstOpCode::ldarb, TR::InstOpCode::ldarh, TR::InstOpCode::ldarw, TR::InstOpCode::ldarx };
         int numberOfBytesLog2 = trailingZeroes(size);
-        generateTrg1MemInstruction(cg, ldarOpCodes[numberOfBytesLog2], node, targetGPR, tempMR);
+        generateTrg1MemInstruction(cg, ldarOpCodes[numberOfBytesLog2], node, targetGPR, ldarMR);
+
+        if (addrReg != NULL)
+            cg->stopUsingRegister(addrReg);
 
         if (targetGPR != targetReg) {
             generateTrg1Src1Instruction(cg,
@@ -5612,21 +5658,25 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
     TR::Symbol *sym = node->getSymbolReference()->getSymbol();
     bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
     bool canUseLDAR = tempMR->getUnresolvedSnippet() == NULL && !cg->comp()->getOption(TR_DisableLDARVolatile);
+    bool useLDAR = needSync && canUseLDAR;
 
     if (TR::Compiler->om.generateCompressedObjectHeaders()
         && (node->getSymbol()->isClassObject()
             || (node->getSymbolReference() == comp->getSymRefTab()->findVftSymbolRef()))) {
-        op = (needSync && canUseLDAR) ? TR::InstOpCode::ldarw : TR::InstOpCode::ldrimmw;
+        op = useLDAR ? TR::InstOpCode::ldarw : TR::InstOpCode::ldrimmw;
         size = 4;
     } else {
-        op = (needSync && canUseLDAR) ? TR::InstOpCode::ldarx : TR::InstOpCode::ldrimmx;
+        op = useLDAR ? TR::InstOpCode::ldarx : TR::InstOpCode::ldrimmx;
         size = 8;
     }
 
     tempMR->validateImmediateOffsetAlignment(node, size, cg);
 
-    if (needSync && canUseLDAR) {
-        tempMR->simplify(node, cg);
+    TR::Register *addrReg = NULL;
+    if (useLDAR && (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset())) {
+        addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
+        generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
+        tempMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
     }
 
     generateTrg1MemInstruction(cg, op, node, tempReg, tempMR);
@@ -5638,6 +5688,9 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
     if (needSync && !canUseLDAR) {
         generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
     }
+
+    if (addrReg != NULL)
+        cg->stopUsingRegister(addrReg);
 
     tempMR->decNodeReferenceCounts(cg);
 
@@ -5671,40 +5724,6 @@ TR::Register *OMR::ARM64::TreeEvaluator::vloadEvaluator(TR::Node *node, TR::Code
 TR::Register *OMR::ARM64::TreeEvaluator::awrtbarEvaluator(TR::Node *node, TR::CodeGenerator *cg)
 {
     return OMR::ARM64::TreeEvaluator::unImpOpEvaluator(node, cg);
-}
-
-/**
- * @brief Helper to materialize the effective address of a memory reference into a register
- *
- * @param[in] cg: CodeGenerator
- * @param[in] node: node
- * @param[in] addrReg: target register
- * @param[in] memRef: memory reference
- * @param[in] cursor: instruction cursor
- *
- * @return instruction cursor
- */
-static TR::Instruction *generateLoadEffectiveAddress(TR::CodeGenerator *cg, TR::Node *node, TR::Register *addrReg,
-    TR::MemoryReference *memRef, TR::Instruction *cursor = NULL)
-{
-    if (memRef->getIndexRegister() != NULL) {
-        cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
-            memRef->getIndexRegister(), cursor);
-    } else if (memRef->hasDelayedOffset()) {
-        cursor = generateTrg1MemInstruction(cg, TR::InstOpCode::addimmx, node, addrReg, memRef, cursor);
-    } else {
-        int32_t offset = memRef->getOffset();
-        if (offset >= 0 && constantIsUnsignedImm12(offset)) {
-            cursor = generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, addrReg,
-                memRef->getBaseRegister(), offset, cursor);
-        } else {
-            cursor = loadConstant64(cg, node, offset, addrReg, cursor);
-            cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
-                addrReg, cursor);
-        }
-    }
-
-    return cursor;
 }
 
 TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::CodeGenerator *cg)
@@ -5770,7 +5789,16 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
     }
 
     if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && canUseSTLR) {
-        tempMR->simplify(node, cg);
+        // stlr doesn't support index registers or offsets, so materialize the address if needed
+        TR::MemoryReference *stlrMR;
+        TR::Register *addrReg = NULL;
+        if (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset()) {
+            addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
+            generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
+            stlrMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
+        } else {
+            stlrMR = tempMR;
+        }
 
         TR::Register *srcGPR = srcReg;
         if (srcReg->getKind() != TR_GPR) {
@@ -5784,7 +5812,11 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
         static const TR::InstOpCode::Mnemonic stlrOpCodes[]
             = { TR::InstOpCode::stlrb, TR::InstOpCode::stlrh, TR::InstOpCode::stlrw, TR::InstOpCode::stlrx };
         int numberOfBytesLog2 = trailingZeroes(size);
-        generateMemSrc1Instruction(cg, stlrOpCodes[numberOfBytesLog2], node, tempMR, srcGPR);
+        generateMemSrc1Instruction(cg, stlrOpCodes[numberOfBytesLog2], node, stlrMR, srcGPR);
+
+        if (addrReg != NULL) {
+            cg->stopUsingRegister(addrReg);
+        }
 
         if (srcGPR != srcReg) {
             cg->stopUsingRegister(srcGPR);

@@ -6496,20 +6496,21 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
 
     // Pack elements down to bytes
     if (elementType == TR::Int64 || elementType == TR::Double) {
-        // Pack qwords to dwords
-        generateRegRegInstruction(TR::InstOpCode::PACKUSDWRegReg, node, workingReg, workingReg, cg);
+        // Pack qwords to dwords using shuffle (no PACKUSDQ instruction exists)
+        // Shuffle to get low dword of each qword: [q0_lo, q1_lo, q0_hi, q1_hi] -> [q0_lo, q1_lo, q0_lo, q1_lo]
+        generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, workingReg, workingReg, 0x08, cg);
         numElements /= 2;
     }
 
     if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64 || elementType == TR::Double) {
-        // Pack dwords to words
-        generateRegRegInstruction(TR::InstOpCode::PACKUSDWRegReg, node, workingReg, workingReg, cg);
+        // Pack dwords to words using PACKSSDW (signed pack, but we only have 0 or 1 so it's safe)
+        generateRegRegInstruction(TR::InstOpCode::PACKSSDWRegReg, node, workingReg, workingReg, cg);
         numElements /= 2;
     }
 
     if (elementType != TR::Int8) {
         // Pack words to bytes
-        generateRegRegInstruction(TR::InstOpCode::PACKUSWBRegReg, node, workingReg, workingReg, cg);
+        generateRegRegInstruction(TR::InstOpCode::PACKSSWBRegReg, node, workingReg, workingReg, cg);
         numElements /= 2;
     }
 

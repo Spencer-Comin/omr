@@ -6503,8 +6503,9 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
     }
 
     if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64 || elementType == TR::Double) {
-        // Pack dwords to words using PACKSSDW (signed pack, but we only have 0 or 1 so it's safe)
-        generateRegRegInstruction(TR::InstOpCode::PACKSSDWRegReg, node, workingReg, workingReg, cg);
+        // Pack dwords to words using shuffle (no PACKSSDW instruction with RegReg form)
+        // Shuffle to get low word of each dword: [d0, d1, d2, d3] -> [d0_lo, d1_lo, d2_lo, d3_lo, ...]
+        generateRegRegImmInstruction(TR::InstOpCode::PSHUFLWRegRegImm1, node, workingReg, workingReg, 0x08, cg);
         numElements /= 2;
     }
 

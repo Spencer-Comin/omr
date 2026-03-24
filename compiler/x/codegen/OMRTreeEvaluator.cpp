@@ -6515,10 +6515,9 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
         generateRegRegInstruction(TR::InstOpCode::PACKSSWBRegReg, node, workingReg, workingReg, cg);
     }
 
-    // Generate memory reference and store
-    TR::MemoryReference *memRef = generateX86MemoryReference(node->getFirstChild(), cg);
-
     // Store based on original number of elements (now packed to bytes)
+    TR::MemoryReference *memRef = generateX86MemoryReference(node, cg);
+
     if (bytesToStore >= 16) {
         generateMemRegInstruction(TR::InstOpCode::MOVDQUMemReg, node, memRef, workingReg, cg);
     } else if (bytesToStore >= 8) {
@@ -6536,8 +6535,9 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
         cg->stopUsingRegister(gprStore);
     }
 
-    cg->stopUsingRegister(workingReg);
     memRef->decNodeReferenceCounts(cg);
+
+    cg->stopUsingRegister(workingReg);
     cg->decReferenceCount(maskNode);
 
     return NULL;

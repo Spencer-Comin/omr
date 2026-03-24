@@ -552,35 +552,38 @@ uint8_t *TR_Debug::printPrefix(OMR::Logger *log, TR::Instruction *instr, uint8_t
     if (cursor != NULL) {
         uint32_t offset = static_cast<uint32_t>(cursor - _comp->cg()->getCodeStart());
 
-        const size_t prefixSize = MAX_PREFIX_WIDTH + 1;
-        char prefix[prefixSize];
+        const size_t maxPrefixSize = MAX_PREFIX_WIDTH + 1;
+        char prefix[maxPrefixSize];
 
         int addressFieldWidth = TR::Compiler->debug.hexAddressFieldWidthInChars();
         int codeByteColumnWidth = TR::Compiler->debug.codeByteColumnWidth();
         int prefixWidth = addressFieldWidth * 2 + codeByteColumnWidth
             + 12; // 8 bytes of offsets, 2 spaces, and opening and closing brackets
 
+        int prefixSize;
         if (instr)
-            snprintf(prefix, prefixSize, POINTER_PRINTF_FORMAT " %08x [%s]", cursor, offset, getName(instr));
+            prefixSize
+                = snprintf(prefix, maxPrefixSize, POINTER_PRINTF_FORMAT " %08x [%s]", cursor, offset, getName(instr));
         else
-            snprintf(prefix, prefixSize, POINTER_PRINTF_FORMAT " %08x %*s", cursor, offset, addressFieldWidth + 2, " ");
+            prefixSize = snprintf(prefix, maxPrefixSize, POINTER_PRINTF_FORMAT " %08x %*s", cursor, offset,
+                addressFieldWidth + 2, " ");
 
         char *p0 = prefix;
-        char *p1 = prefix + strlen(prefix);
-        size_t p1Size = prefixSize - strlen(prefix);
+        char *p1 = prefix + prefixSize;
+        size_t p1Size = maxPrefixSize - prefixSize;
 
         // Print machine code in bytes on X86, in words on PPC,ARM,ARM64
         // Stop if we try to run over the buffer.
         if (_comp->target().cpu.isX86()) {
-            for (int i = 0; i < size && p1 - p0 + 3 < prefixWidth; i++, p1 += 3, p1Size -= 3)
-                snprintf(p1, p1Size, " %02x", *cursor++);
+            for (int i = 0; i < size && p1 - p0 + 3 < prefixWidth; i++, p1 += 3)
+                p1Size -= snprintf(p1, p1Size, " %02x", *cursor++);
         } else if (_comp->target().cpu.isPower() || _comp->target().cpu.isARM() || _comp->target().cpu.isARM64()) {
-            for (int i = 0; i < size && p1 - p0 + 9 < prefixWidth; i += 4, p1 += 9, cursor += 4, p1Size -= 9)
-                snprintf(p1, p1Size, " %08x", *((uint32_t *)cursor));
+            for (int i = 0; i < size && p1 - p0 + 9 < prefixWidth; i += 4, p1 += 9, cursor += 4)
+                p1Size -= snprintf(p1, p1Size, " %08x", *((uint32_t *)cursor));
         } else // FIXME: Need a better general form
         {
-            for (int i = 0; i < size && p1 - p0 + 3 < prefixWidth; i++, p1 += 3, p1Size -= 3)
-                snprintf(p1, p1Size, " %02x", *cursor++);
+            for (int i = 0; i < size && p1 - p0 + 3 < prefixWidth; i++, p1 += 3)
+                p1Size -= snprintf(p1, p1Size, " %02x", *cursor++);
         }
 
         int32_t leftOver = static_cast<int32_t>(p0 + prefixWidth - p1);

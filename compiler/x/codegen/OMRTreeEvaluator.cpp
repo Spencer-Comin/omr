@@ -6495,39 +6495,40 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
     cg->stopUsingRegister(gprTmp);
 
     // Pack elements down to bytes
+    // Keep track of original element count for final store size
+    int bytesToStore = numElements;
+
     if (elementType == TR::Int64 || elementType == TR::Double) {
         // Pack qwords to dwords using shuffle (no PACKUSDQ instruction exists)
         // Shuffle to get low dword of each qword: [q0_lo, q1_lo, q0_hi, q1_hi] -> [q0_lo, q1_lo, q0_lo, q1_lo]
         generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, workingReg, workingReg, 0x08, cg);
-        numElements /= 2;
     }
 
     if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64 || elementType == TR::Double) {
         // Pack dwords to words using shuffle (no PACKSSDW instruction with RegReg form)
         // Shuffle to get low word of each dword: [d0, d1, d2, d3] -> [d0_lo, d1_lo, d2_lo, d3_lo, ...]
         generateRegRegImmInstruction(TR::InstOpCode::PSHUFLWRegRegImm1, node, workingReg, workingReg, 0x08, cg);
-        numElements /= 2;
     }
 
     if (elementType != TR::Int8) {
         // Pack words to bytes
         generateRegRegInstruction(TR::InstOpCode::PACKSSWBRegReg, node, workingReg, workingReg, cg);
-        numElements /= 2;
     }
 
     // Generate memory reference and store
     TR::MemoryReference *memRef = generateX86MemoryReference(node->getFirstChild(), cg);
 
-    if (numElements >= 16) {
+    // Store based on original number of elements (now packed to bytes)
+    if (bytesToStore >= 16) {
         generateMemRegInstruction(TR::InstOpCode::MOVDQUMemReg, node, memRef, workingReg, cg);
-    } else if (numElements >= 8) {
+    } else if (bytesToStore >= 8) {
         generateMemRegInstruction(TR::InstOpCode::MOVQMemReg, node, memRef, workingReg, cg);
-    } else if (numElements >= 4) {
+    } else if (bytesToStore >= 4) {
         generateMemRegInstruction(TR::InstOpCode::MOVDMemReg, node, memRef, workingReg, cg);
     } else {
         TR::Register *gprStore = cg->allocateRegister(TR_GPR);
         generateRegRegInstruction(TR::InstOpCode::MOVDReg4Reg, node, gprStore, workingReg, cg);
-        if (numElements == 2) {
+        if (bytesToStore == 2) {
             generateMemRegInstruction(TR::InstOpCode::S2MemReg, node, memRef, gprStore, cg);
         } else {
             generateMemRegInstruction(TR::InstOpCode::S1MemReg, node, memRef, gprStore, cg);

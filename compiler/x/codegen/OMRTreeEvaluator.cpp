@@ -6481,164 +6481,96 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
     bool isVMR = (maskReg->getKind() == TR_VMR);
 
     if (isVMR) {
-        // Optimized AVX-512 VMR sequences
-        if (numElements == 1) {
-            // KMOVW mask -> GPR, AND with 1, store byte
-            TR::Register *gprMask = cg->allocateRegister(TR_GPR);
-            generateRegRegInstruction(TR::InstOpCode::KMOVWReg4Reg, node, gprMask, maskReg, cg);
-            generateRegImmInstruction(TR::InstOpCode::AND4RegImm4, node, gprMask, 1, cg);
-            generateMemRegInstruction(TR::InstOpCode::S1MemReg, node, memRef, gprMask, cg);
-            cg->stopUsingRegister(gprMask);
-        } else if (numElements == 2) {
-            // KMOVW mask -> GPR, PDEP with 0x0101, store word
+        // Optimized AVX-512 VMR sequences using KMOV and PDEP
+        if (numElements <= 8) {
+            // Use KMOV to GPR + PDEP for small sizes (1-8 elements)
             TR::Register *gprMask = cg->allocateRegister(TR_GPR);
             TR::Register *gprResult = cg->allocateRegister(TR_GPR);
-            generateRegRegInstruction(TR::InstOpCode::KMOVWReg4Reg, node, gprMask, maskReg, cg);
-            generateRegImmInstruction(TR::InstOpCode::MOVRegImm4(), node, gprResult, 0x0101, cg);
-            generateRegRegRegInstruction(TR::InstOpCode::PDEPReg4Reg4Reg4, node, gprResult, gprMask, gprResult, cg);
-            generateMemRegInstruction(TR::InstOpCode::S2MemReg, node, memRef, gprResult, cg);
+
+            if (numElements <= 4) {
+                // 32-bit operations
+                generateRegRegInstruction(TR::InstOpCode::KMOVWRegMask, node, gprMask, maskReg, cg);
+
+                if (numElements == 1) {
+                    generateRegImmInstruction(TR::InstOpCode::AND4RegImm4, node, gprMask, 1, cg);
+                    generateMemRegInstruction(TR::InstOpCode::S1MemReg, node, memRef, gprMask, cg);
+                } else {
+                    uint32_t pdepMask = (numElements == 2) ? 0x0101 : 0x01010101;
+                    generateRegImmInstruction(TR::InstOpCode::MOVRegImm4(), node, gprResult, pdepMask, cg);
+                    generateRegRegRegInstruction(TR::InstOpCode::PDEPRegRegReg(false), node, gprResult, gprMask,
+                        gprResult, cg);
+                    if (numElements == 2) {
+                        generateMemRegInstruction(TR::InstOpCode::S2MemReg, node, memRef, gprResult, cg);
+                    } else {
+                        generateMemRegInstruction(TR::InstOpCode::S4MemReg, node, memRef, gprResult, cg);
+                    }
+                }
+            } else {
+                // 64-bit operation for 8 elements
+                generateRegRegInstruction(TR::InstOpCode::KMOVWRegMask, node, gprMask, maskReg, cg);
+                generateRegImm64Instruction(TR::InstOpCode::MOV8RegImm64, node, gprResult, 0x0101010101010101ULL, cg);
+                generateRegRegRegInstruction(TR::InstOpCode::PDEPRegRegReg(true), node, gprResult, gprMask, gprResult,
+                    cg);
+                generateMemRegInstruction(TR::InstOpCode::S8MemReg, node, memRef, gprResult, cg);
+            }
+
             cg->stopUsingRegister(gprMask);
             cg->stopUsingRegister(gprResult);
-        } else if (numElements == 4) {
-            // KMOVW mask -> GPR, PDEP with 0x01010101, store dword
-            TR::Register *gprMask = cg->allocateRegister(TR_GPR);
-            TR::Register *gprResult = cg->allocateRegister(TR_GPR);
-            generateRegRegInstruction(TR::InstOpCode::KMOVWReg4Reg, node, gprMask, maskReg, cg);
-            generateRegImmInstruction(TR::InstOpCode::MOVRegImm4(), node, gprResult, 0x01010101, cg);
-            generateRegRegRegInstruction(TR::InstOpCode::PDEPReg4Reg4Reg4, node, gprResult, gprMask, gprResult, cg);
-            generateMemRegInstruction(TR::InstOpCode::S4MemReg, node, memRef, gprResult, cg);
-            cg->stopUsingRegister(gprMask);
-            cg->stopUsingRegister(gprResult);
-        } else if (numElements == 8) {
-            // KMOVW mask -> GPR, PDEP with 0x0101010101010101, store qword
-            TR::Register *gprMask = cg->allocateRegister(TR_GPR);
-            TR::Register *gprResult = cg->allocateRegister(TR_GPR);
-            generateRegRegInstruction(TR::InstOpCode::KMOVWReg8Reg, node, gprMask, maskReg, cg);
-            generateRegImm64Instruction(TR::InstOpCode::MOV8RegImm64, node, gprResult, 0x0101010101010101ULL, cg);
-            generateRegRegRegInstruction(TR::InstOpCode::PDEPReg8Reg8Reg8, node, gprResult, gprMask, gprResult, cg);
-            generateMemRegInstruction(TR::InstOpCode::S8MemReg, node, memRef, gprResult, cg);
-            cg->stopUsingRegister(gprMask);
-            cg->stopUsingRegister(gprResult);
-        } else if (numElements == 16) {
-            // VPABSB with mask, using all-ones vector
-            TR::Register *onesReg = cg->allocateRegister(TR_VRF);
+        } else {
+            // Use VPMOVM2B for 16+ elements
             TR::Register *resultReg = cg->allocateRegister(TR_VRF);
-            generateRegRegInstruction(TR::InstOpCode::VPCMPEQDRegReg, node, onesReg, onesReg, cg);
-            generateRegMaskRegInstruction(TR::InstOpCode::VPABSBRegMaskReg, node, resultReg, maskReg, onesReg, cg);
-            generateMemRegInstruction(TR::InstOpCode::MOVDQUMemReg, node, memRef, resultReg, cg);
-            cg->stopUsingRegister(onesReg);
-            cg->stopUsingRegister(resultReg);
-        } else if (numElements == 32) {
-            // VPABSW with mask, using all-ones vector (256-bit)
-            TR::Register *onesReg = cg->allocateRegister(TR_VRF);
-            TR::Register *resultReg = cg->allocateRegister(TR_VRF);
-            generateRegRegInstruction(TR::InstOpCode::VPCMPEQDYmmYmm, node, onesReg, onesReg, cg);
-            generateRegMaskRegInstruction(TR::InstOpCode::VPABSWYmmMaskYmm, node, resultReg, maskReg, onesReg, cg);
-            generateMemRegInstruction(TR::InstOpCode::VMOVDQUYmmMem, node, memRef, resultReg, cg);
-            cg->stopUsingRegister(onesReg);
-            cg->stopUsingRegister(resultReg);
-        } else if (numElements == 64) {
-            // VPMOVM2B or masked set1 (512-bit)
-            TR::Register *resultReg = cg->allocateRegister(TR_VRF);
-            generateRegMaskImmInstruction(TR::InstOpCode::VPMOVZXBWZ512RegMaskImm1, node, resultReg, maskReg, 1, cg);
-            generateMemRegInstruction(TR::InstOpCode::VMOVDQU64ZmmMem, node, memRef, resultReg, cg);
+
+            if (numElements == 16) {
+                generateRegRegInstruction(TR::InstOpCode::VPMOVM2BRegReg, node, resultReg, maskReg, cg);
+                generateMemRegInstruction(TR::InstOpCode::MOVDQUMemReg, node, memRef, resultReg, cg);
+            } else if (numElements == 32) {
+                generateRegRegInstruction(TR::InstOpCode::VPMOVM2BRegReg, node, resultReg, maskReg, cg);
+                generateMemRegInstruction(TR::InstOpCode::VMOVDQUMemYmm, node, memRef, resultReg, cg);
+            } else {
+                // 64 elements
+                generateRegRegInstruction(TR::InstOpCode::VPMOVM2BRegReg, node, resultReg, maskReg, cg);
+                generateMemRegInstruction(TR::InstOpCode::VMOVDQUMemZmm, node, memRef, resultReg, cg);
+            }
+
             cg->stopUsingRegister(resultReg);
         }
     } else {
-        // Non-VMR path: mask is in vector register
-        TR::Register *workingReg = cg->allocateRegister(TR_VRF);
+        // Non-VMR path: mask is in vector register (128-bit SSE only for now)
+        TR_ASSERT_FATAL_WITH_NODE(node, vectorLength == TR::VectorLength128,
+            "Non-VMR masks only support 128-bit vectors currently");
 
-        if (vectorLength == TR::VectorLength512) {
-            generateRegRegInstruction(TR::InstOpCode::VMOVDQU64RegReg, node, workingReg, maskReg, cg);
-        } else if (vectorLength == TR::VectorLength256) {
-            generateRegRegInstruction(TR::InstOpCode::VMOVDQUYmmYmm, node, workingReg, maskReg, cg);
-        } else {
-            generateRegRegInstruction(TR::InstOpCode::MOVDQURegReg, node, workingReg, maskReg, cg);
-        }
+        TR::Register *workingReg = cg->allocateRegister(TR_VRF);
+        generateRegRegInstruction(TR::InstOpCode::MOVDQURegReg, node, workingReg, maskReg, cg);
 
         // Create a vector with 0x01 in each byte position
         TR::Register *oneMaskReg = cg->allocateRegister(TR_VRF);
         TR::Register *gprTmp = cg->allocateRegister(TR_GPR);
         generateRegImmInstruction(TR::InstOpCode::MOVRegImm4(), node, gprTmp, 0x01010101, cg);
         generateRegRegInstruction(TR::InstOpCode::MOVDRegReg4, node, oneMaskReg, gprTmp, cg);
-
-        if (vectorLength == TR::VectorLength512) {
-            generateRegRegImmInstruction(TR::InstOpCode::VBROADCASTI32X4RegRegImm1, node, oneMaskReg, oneMaskReg, 0,
-                cg);
-        } else if (vectorLength == TR::VectorLength256) {
-            generateRegRegImmInstruction(TR::InstOpCode::VBROADCASTI128RegRegImm1, node, oneMaskReg, oneMaskReg, 0, cg);
-        } else {
-            generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, oneMaskReg, oneMaskReg, 0, cg);
-        }
+        generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, oneMaskReg, oneMaskReg, 0, cg);
 
         // AND to isolate LSB of each element
-        if (vectorLength == TR::VectorLength512) {
-            generateRegRegRegInstruction(TR::InstOpCode::VPANDDZ512RegRegReg, node, workingReg, workingReg, oneMaskReg,
-                cg);
-        } else if (vectorLength == TR::VectorLength256) {
-            generateRegRegRegInstruction(TR::InstOpCode::VPANDYmmYmmYmm, node, workingReg, workingReg, oneMaskReg, cg);
-        } else {
-            generateRegRegInstruction(TR::InstOpCode::PANDRegReg, node, workingReg, oneMaskReg, cg);
-        }
+        generateRegRegInstruction(TR::InstOpCode::PANDRegReg, node, workingReg, oneMaskReg, cg);
 
         cg->stopUsingRegister(oneMaskReg);
         cg->stopUsingRegister(gprTmp);
 
-        // Pack elements down to bytes
-        if (vectorLength == TR::VectorLength512 || vectorLength == TR::VectorLength256) {
-            // For 256/512-bit vectors, use AVX-512 or AVX2 packing instructions
-            if (elementType == TR::Int64 || elementType == TR::Double) {
-                // Pack qwords to dwords
-                if (vectorLength == TR::VectorLength512) {
-                    generateRegRegImmInstruction(TR::InstOpCode::VPMOVQD256RegRegImm1, node, workingReg, workingReg, 0,
-                        cg);
-                } else {
-                    // AVX2: Use VPERMQ to rearrange then extract
-                    generateRegRegImmInstruction(TR::InstOpCode::VPERMQYmmYmmImm1, node, workingReg, workingReg, 0xD8,
-                        cg);
-                    generateRegRegInstruction(TR::InstOpCode::VEXTRACTI128RegYmmImm1, node, workingReg, workingReg, cg);
-                }
-            }
+        // Pack elements down to bytes (128-bit SSE path)
+        if (elementType == TR::Int64 || elementType == TR::Double) {
+            generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, workingReg, workingReg, 0x08, cg);
+        }
 
-            if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64
-                || elementType == TR::Double) {
-                // Pack dwords to words
-                if (vectorLength == TR::VectorLength512
-                    || (vectorLength == TR::VectorLength256
-                        && (elementType == TR::Int64 || elementType == TR::Double))) {
-                    generateRegRegImmInstruction(TR::InstOpCode::VPMOVDW128RegRegImm1, node, workingReg, workingReg, 0,
-                        cg);
-                } else {
-                    generateRegRegImmInstruction(TR::InstOpCode::VPERMDYmmYmmYmm, node, workingReg, workingReg,
-                        workingReg, cg);
-                    generateRegRegInstruction(TR::InstOpCode::VEXTRACTI128RegYmmImm1, node, workingReg, workingReg, cg);
-                }
-            }
+        if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64
+            || elementType == TR::Double) {
+            generateRegRegImmInstruction(TR::InstOpCode::PSHUFLWRegRegImm1, node, workingReg, workingReg, 0x08, cg);
+        }
 
-            if (elementType != TR::Int8) {
-                // Pack words to bytes
-                generateRegRegInstruction(TR::InstOpCode::VPMOVWBRegReg, node, workingReg, workingReg, cg);
-            }
-        } else {
-            // 128-bit SSE path
-            if (elementType == TR::Int64 || elementType == TR::Double) {
-                generateRegRegImmInstruction(TR::InstOpCode::PSHUFDRegRegImm1, node, workingReg, workingReg, 0x08, cg);
-            }
-
-            if (elementType == TR::Int32 || elementType == TR::Float || elementType == TR::Int64
-                || elementType == TR::Double) {
-                generateRegRegImmInstruction(TR::InstOpCode::PSHUFLWRegRegImm1, node, workingReg, workingReg, 0x08, cg);
-            }
-
-            if (elementType != TR::Int8) {
-                generateRegRegInstruction(TR::InstOpCode::PACKSSWBRegReg, node, workingReg, workingReg, cg);
-            }
+        if (elementType != TR::Int8) {
+            generateRegRegInstruction(TR::InstOpCode::PACKSSWBRegReg, node, workingReg, workingReg, cg);
         }
 
         // Store based on original number of elements (now packed to bytes)
-        if (numElements >= 32) {
-            generateMemRegInstruction(TR::InstOpCode::VMOVDQUYmmMem, node, memRef, workingReg, cg);
-        } else if (numElements >= 16) {
+        if (numElements >= 16) {
             generateMemRegInstruction(TR::InstOpCode::MOVDQUMemReg, node, memRef, workingReg, cg);
         } else if (numElements >= 8) {
             generateMemRegInstruction(TR::InstOpCode::MOVQMemReg, node, memRef, workingReg, cg);

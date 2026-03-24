@@ -309,7 +309,6 @@ public:
     static TR::Register *vfirstNonZeroEvaluator(TR::Node *node, TR::CodeGenerator *cg);
     static TR::Register *vgetelemEvaluator(TR::Node *node, TR::CodeGenerator *cg);
     static TR::Register *vcastEvaluator(TR::Node *node, TR::CodeGenerator *cg);
-    static TR::Register *vconvEvaluator(TR::Node *node, TR::CodeGenerator *cg);
 
     static TR::Register *f2iuEvaluator(TR::Node *node, TR::CodeGenerator *cg);
     static TR::Register *f2luEvaluator(TR::Node *node, TR::CodeGenerator *cg);

@@ -1312,11 +1312,6 @@ TR::Register *OMR::X86::AMD64::TreeEvaluator::vcastEvaluator(TR::Node *node, TR:
     return TR::TreeEvaluator::passThroughEvaluator(node, cg);
 }
 
-TR::Register *OMR::X86::AMD64::TreeEvaluator::vconvEvaluator(TR::Node *node, TR::CodeGenerator *cg)
-{
-    return TR::TreeEvaluator::unImpOpEvaluator(node, cg);
-}
-
 TR::Register *OMR::X86::AMD64::TreeEvaluator::vgetelemEvaluator(TR::Node *node, TR::CodeGenerator *cg)
 {
     return TR::TreeEvaluator::SIMDvgetelemEvaluator(node, cg);

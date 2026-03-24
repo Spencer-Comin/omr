@@ -6627,6 +6627,128 @@ TR::Register *OMR::X86::TreeEvaluator::mstoreiToArrayEvaluator(TR::Node *node, T
     return NULL;
 }
 
+struct VConvStep {
+    bool isDirect;
+
+    union {
+        TR::DataType intermediateType;
+        TR::InstOpCode::Mnemonic directOpCode[3]; // 128-bit, 256-bit, 512-bit
+    };
+
+    VConvStep()
+        : isDirect(false)
+        , intermediateType(TR::NoType)
+    {}
+
+    VConvStep(TR::DataType intermediateType)
+        : isDirect(false)
+        , intermediateType(intermediateType)
+    {}
+
+    VConvStep(TR::InstOpCode::Mnemonic op128, TR::InstOpCode::Mnemonic op256, TR::InstOpCode::Mnemonic op512)
+        : isDirect(true)
+    {
+        directOpCode[0] = op128;
+        directOpCode[1] = op256;
+        directOpCode[2] = op512;
+    }
+};
+
+// clang-format off
+static const VConvStep nextVConvStep[/* sourceType */ 6][/* resultType */ 6] = {
+    /* Int8 */ {
+        /* Int8 */   {},
+        /* Int16 */  {TR::InstOpCode::PMOVSXBWRegReg, TR::InstOpCode::PMOVSXBWRegReg, TR::InstOpCode::PMOVSXBWRegReg},
+        /* Int32 */  {TR::InstOpCode::PMOVSXBDRegReg, TR::InstOpCode::PMOVSXBDRegReg, TR::InstOpCode::PMOVSXBDRegReg},
+        /* Int64 */  {TR::InstOpCode::PMOVSXBQRegReg, TR::InstOpCode::PMOVSXBQRegReg, TR::InstOpCode::PMOVSXBQRegReg},
+        /* Float */  {TR::Int32},
+        /* Double */ {TR::Int32}
+    },
+    /* Int16 */ {
+        /* Int8 */   {TR::InstOpCode::PACKSSWBRegReg, TR::InstOpCode::PACKSSWBYmmYmm, TR::InstOpCode::PACKSSWBZmmZmm},
+        /* Int16 */  {},
+        /* Int32 */  {TR::InstOpCode::PMOVSXWDRegReg, TR::InstOpCode::PMOVSXWDRegReg, TR::InstOpCode::PMOVSXWDRegReg},
+        /* Int64 */  {TR::InstOpCode::PMOVSXWQRegReg, TR::InstOpCode::PMOVSXWQRegReg, TR::InstOpCode::PMOVSXWQRegReg},
+        /* Float */  {TR::Int32},
+        /* Double */ {TR::Int32}
+    },
+    /* Int32 */ {
+        /* Int8 */   {TR::Int16},
+        /* Int16 */  {TR::InstOpCode::PACKSSDWRegReg, TR::InstOpCode::PACKSSDWYmmYmm, TR::InstOpCode::PACKSSDWZmmZmm},
+        /* Int32 */  {},
+        /* Int64 */  {TR::InstOpCode::PMOVSXDQRegReg, TR::InstOpCode::PMOVSXDQRegReg, TR::InstOpCode::PMOVSXDQRegReg},
+        /* Float */  {TR::InstOpCode::CVTDQ2PSRegReg, TR::InstOpCode::VCVTDQ2PSYmmYmm, TR::InstOpCode::VCVTDQ2PSZmmZmm},
+        /* Double */ {TR::InstOpCode::CVTDQ2PDRegReg, TR::InstOpCode::VCVTDQ2PDYmmXmm, TR::InstOpCode::VCVTDQ2PDZmmYmm}
+    },
+    /* Int64 */ {
+        /* Int8 */   {TR::Int32},
+        /* Int16 */  {TR::Int32},
+        /* Int32 */  {TR::InstOpCode::PSHUFDRegRegImm1, TR::InstOpCode::MOVDQURegReg, TR::InstOpCode::MOVDQURegReg},
+        /* Int64 */  {},
+        /* Float */  {TR::Double},
+        /* Double */ {TR::InstOpCode::CVTQQ2PDRegReg, TR::InstOpCode::VCVTQQ2PDYmmYmm, TR::InstOpCode::VCVTQQ2PDZmmZmm}
+    },
+    /* Float */ {
+        /* Int8 */   {TR::Int32},
+        /* Int16 */  {TR::Int32},
+        /* Int32 */  {TR::InstOpCode::CVTTPS2DQRegReg, TR::InstOpCode::VCVTTPS2DQYmmYmm, TR::InstOpCode::VCVTTPS2DQZmmZmm},
+        /* Int64 */  {TR::Double},
+        /* Float */  {},
+        /* Double */ {TR::InstOpCode::CVTPS2PDRegReg, TR::InstOpCode::VCVTPS2PDYmmXmm, TR::InstOpCode::VCVTPS2PDZmmYmm}
+    },
+    /* Double */ {
+        /* Int8 */   {TR::Int32},
+        /* Int16 */  {TR::Int32},
+        /* Int32 */  {TR::InstOpCode::CVTTPD2DQRegReg, TR::InstOpCode::VCVTTPD2DQXmmYmm, TR::InstOpCode::VCVTTPD2DQYmmZmm},
+        /* Int64 */  {TR::InstOpCode::CVTTPD2QQRegReg, TR::InstOpCode::VCVTTPD2QQYmmYmm, TR::InstOpCode::VCVTTPD2QQZmmZmm},
+        /* Float */  {TR::InstOpCode::CVTPD2PSRegReg, TR::InstOpCode::VCVTPD2PSXmmYmm, TR::InstOpCode::VCVTPD2PSYmmZmm},
+        /* Double */ {}
+    }
+};
+// clang-format on
+
+static void vconvHelper(TR::Node *node, TR::CodeGenerator *cg, TR::Register *resultReg, TR::Register *sourceReg,
+    TR::DataType resultType, TR::DataType sourceType, TR::VectorLength vectorLength)
+{
+    const VConvStep step = nextVConvStep[sourceType - TR::Int8][resultType - TR::Int8];
+    if (step.isDirect) {
+        generateRegRegInstruction(step.directOpCode[vectorLength - TR::VectorLength128], node, resultReg, sourceReg,
+            cg);
+    } else {
+        TR::Register *intermediateReg = cg->allocateRegister(TR_VRF);
+        // convert source to intermediate type
+        vconvHelper(node, cg, intermediateReg, sourceReg, step.intermediateType, sourceType, vectorLength);
+        // convert intermediate to result type
+        vconvHelper(node, cg, resultReg, intermediateReg, resultType, step.intermediateType, vectorLength);
+        cg->stopUsingRegister(intermediateReg);
+    }
+}
+
+TR::Register *OMR::X86::TreeEvaluator::vconvEvaluator(TR::Node *node, TR::CodeGenerator *cg)
+{
+    TR::Node *firstChild = node->getFirstChild();
+    TR::Register *sourceReg = cg->evaluate(firstChild);
+    TR::Register *targetReg;
+
+    // Get source and destination data types
+    TR::DataType sourceType = node->getOpCode().getVectorSourceDataType().getVectorElementType();
+    TR::DataType resultType = node->getOpCode().getVectorResultDataType().getVectorElementType();
+
+    if (sourceType == resultType) {
+        // If types are the same, just copy the register
+        targetReg = sourceReg;
+    } else {
+        targetReg = cg->allocateRegister(TR_VRF);
+        TR::VectorLength vectorLength = node->getOpCode().getVectorResultDataType().getVectorLength();
+        vconvHelper(node, cg, targetReg, sourceReg, resultType, sourceType, vectorLength);
+    }
+
+    node->setRegister(targetReg);
+    cg->decReferenceCount(firstChild);
+
+    return targetReg;
+}
+
 TR::Register *OMR::X86::TreeEvaluator::b2mEvaluator(TR::Node *node, TR::CodeGenerator *cg)
 {
     return TR::TreeEvaluator::arrayToVectorMaskHelper(node, cg);

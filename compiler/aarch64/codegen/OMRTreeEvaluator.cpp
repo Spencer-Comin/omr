@@ -5526,33 +5526,31 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
  *
  * @param[in] cg: CodeGenerator
  * @param[in] node: node
- * @param[in] addrReg: target register
  * @param[in] memRef: memory reference
- * @param[in] cursor: instruction cursor
  *
- * @return instruction cursor
+ * @return register containing effective address of memRef
  */
-static TR::Instruction *generateLoadEffectiveAddress(TR::CodeGenerator *cg, TR::Node *node, TR::Register *addrReg,
-    TR::MemoryReference *memRef, TR::Instruction *cursor = NULL)
+static TR::Register *generateLoadEffectiveAddress(TR::CodeGenerator *cg, TR::Node *node, TR::MemoryReference *memRef)
 {
+    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
+    TR::Register *addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
     if (memRef->getIndexRegister() != NULL) {
-        cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
-            memRef->getIndexRegister(), cursor);
+        generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
+            memRef->getIndexRegister());
     } else if (memRef->hasDelayedOffset()) {
-        cursor = generateTrg1MemInstruction(cg, TR::InstOpCode::addimmx, node, addrReg, memRef, cursor);
+        generateTrg1MemInstruction(cg, TR::InstOpCode::addimmx, node, addrReg, memRef);
     } else {
         int32_t offset = memRef->getOffset();
         if (offset >= 0 && constantIsUnsignedImm12(offset)) {
-            cursor = generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, addrReg,
-                memRef->getBaseRegister(), offset, cursor);
+            generateTrg1Src1ImmInstruction(cg, TR::InstOpCode::addimmx, node, addrReg, memRef->getBaseRegister(),
+                offset);
         } else {
-            cursor = loadConstant64(cg, node, offset, addrReg, cursor);
-            cursor = generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(),
-                addrReg, cursor);
+            loadConstant64(cg, node, offset, addrReg);
+            generateTrg1Src2Instruction(cg, TR::InstOpCode::addx, node, addrReg, memRef->getBaseRegister(), addrReg);
         }
     }
 
-    return cursor;
+    return addrReg;
 }
 
 TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, int32_t size, TR::Register *targetReg,
@@ -5572,8 +5570,7 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
         TR::MemoryReference *ldarMR;
         TR::Register *addrReg = NULL;
         if (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset()) {
-            addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
-            generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
+            addrReg = generateLoadEffectiveAddress(cg, node, tempMR);
             ldarMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
         } else {
             ldarMR = tempMR;
@@ -5650,32 +5647,20 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
         return tempReg;
     }
 
-    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
     TR::InstOpCode::Mnemonic op;
     int32_t size;
-    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
-    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
-    bool canUseLDAR = tempMR->getUnresolvedSnippet() == NULL && !cg->comp()->getOption(TR_DisableLDARVolatile);
-    bool useLDAR = needSync && canUseLDAR;
 
     if (TR::Compiler->om.generateCompressedObjectHeaders()
         && (node->getSymbol()->isClassObject()
             || (node->getSymbolReference() == comp->getSymRefTab()->findVftSymbolRef()))) {
-        op = useLDAR ? TR::InstOpCode::ldarw : TR::InstOpCode::ldrimmw;
+        op = TR::InstOpCode::ldrimmw;
         size = 4;
     } else {
-        op = useLDAR ? TR::InstOpCode::ldarx : TR::InstOpCode::ldrimmx;
+        op = TR::InstOpCode::ldrimmx;
         size = 8;
     }
-
+    TR::MemoryReference *tempMR = TR::MemoryReference::createWithRootLoadOrStore(cg, node);
     tempMR->validateImmediateOffsetAlignment(node, size, cg);
-
-    TR::Register *addrReg = NULL;
-    if (useLDAR && (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset())) {
-        addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
-        generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
-        tempMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
-    }
 
     generateTrg1MemInstruction(cg, op, node, tempReg, tempMR);
 
@@ -5683,12 +5668,11 @@ TR::Register *OMR::ARM64::TreeEvaluator::aloadEvaluator(TR::Node *node, TR::Code
         TR::TreeEvaluator::generateVFTMaskInstruction(cg, node, tempReg);
     }
 
-    if (needSync && !canUseLDAR) {
+    TR::Symbol *sym = node->getSymbolReference()->getSymbol();
+    bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
+    if (needSync) {
         generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishld);
     }
-
-    if (addrReg != NULL)
-        cg->stopUsingRegister(addrReg);
 
     tempMR->decNodeReferenceCounts(cg);
 
@@ -5791,8 +5775,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
         TR::MemoryReference *stlrMR;
         TR::Register *addrReg = NULL;
         if (tempMR->getIndexRegister() != NULL || tempMR->getOffset() != 0 || tempMR->hasDelayedOffset()) {
-            addrReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
-            generateLoadEffectiveAddress(cg, node, addrReg, tempMR);
+            addrReg = generateLoadEffectiveAddress(cg, node, tempMR);
             stlrMR = TR::MemoryReference::createWithDisplacement(cg, addrReg, 0);
         } else {
             stlrMR = tempMR;
@@ -7377,7 +7360,8 @@ TR::Register *OMR::ARM64::TreeEvaluator::loadaddrEvaluator(TR::Node *node, TR::C
     TR::MemoryReference *mref = TR::MemoryReference::createWithSymRef(cg, node, node->getSymbolReference());
 
     if (mref->getUnresolvedSnippet() != NULL) {
-        resultReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
+        resultReg
+            = node->getSymbol()->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
         if (mref->useIndexedForm()) {
             TR_ASSERT(false, "Unresolved indexed snippet is not supported");
         } else {
@@ -7385,8 +7369,7 @@ TR::Register *OMR::ARM64::TreeEvaluator::loadaddrEvaluator(TR::Node *node, TR::C
         }
     } else {
         if (mref->useIndexedForm() || mref->hasDelayedOffset() || mref->getOffset() != 0) {
-            resultReg = sym->isLocalObject() ? cg->allocateCollectedReferenceRegister() : cg->allocateRegister();
-            generateLoadEffectiveAddress(cg, node, resultReg, mref);
+            resultReg = generateLoadEffectiveAddress(cg, node, mref);
         } else {
             resultReg = mref->getBaseRegister();
             if (resultReg == cg->getMethodMetaDataRegister()) {

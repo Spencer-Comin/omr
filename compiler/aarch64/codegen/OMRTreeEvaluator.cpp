@@ -5564,8 +5564,8 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
 
     TR::Symbol *sym = node->getSymbolReference()->getSymbol();
     bool needSync = cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease();
-    bool canUseLDAR
-        = tempMR->getUnresolvedSnippet() == NULL && size <= 8 && !cg->comp()->getOption(TR_DisableLDARVolatile);
+    bool canUseLDAR = tempMR->getUnresolvedSnippet() == NULL && (size == 4 || size == 8)
+        && !cg->comp()->getOption(TR_DisableLDARVolatile);
 
     if (needSync && canUseLDAR) {
         // ldar doesn't support index registers or offsets, so materialize the address if needed
@@ -5585,10 +5585,8 @@ TR::Register *commonLoadEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, i
             targetGPR = cg->allocateRegister();
         }
 
-        static const TR::InstOpCode::Mnemonic ldarOpCodes[]
-            = { TR::InstOpCode::ldarb, TR::InstOpCode::ldarh, TR::InstOpCode::ldarw, TR::InstOpCode::ldarx };
-        int numberOfBytesLog2 = trailingZeroes(size);
-        generateTrg1MemInstruction(cg, ldarOpCodes[numberOfBytesLog2], node, targetGPR, ldarMR);
+        generateTrg1MemInstruction(cg, size == 4 ? TR::InstOpCode::ldarw : TR::InstOpCode::ldarx, node, targetGPR,
+            ldarMR);
 
         if (addrReg != NULL)
             cg->stopUsingRegister(addrReg);
@@ -5739,8 +5737,8 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
         valueChild = node->getFirstChild();
     }
 
-    bool canUseSTLR
-        = size <= 8 && tempMR->getUnresolvedSnippet() == NULL && !cg->comp()->getOption(TR_DisableSTLRVolatile);
+    bool canUseSTLR = (size == 4 || size == 8) && tempMR->getUnresolvedSnippet() == NULL
+        && !cg->comp()->getOption(TR_DisableSTLRVolatile);
     if (cg->comp()->target().isSMP() && sym->isAtLeastOrStrongerThanAcquireRelease() && !canUseSTLR) {
         generateSynchronizationInstruction(cg, TR::InstOpCode::dmb, node, TR::InstOpCode::ishst);
     }
@@ -5809,10 +5807,7 @@ TR::Register *commonStoreEvaluator(TR::Node *node, TR::InstOpCode::Mnemonic op, 
                 srcReg);
         }
 
-        static const TR::InstOpCode::Mnemonic stlrOpCodes[]
-            = { TR::InstOpCode::stlrb, TR::InstOpCode::stlrh, TR::InstOpCode::stlrw, TR::InstOpCode::stlrx };
-        int numberOfBytesLog2 = trailingZeroes(size);
-        generateMemSrc1Instruction(cg, stlrOpCodes[numberOfBytesLog2], node, stlrMR, srcGPR);
+        generateMemSrc1Instruction(cg, size == 4 ? TR::InstOpCode::stlrw : TR::InstOpCode::stlrx, node, stlrMR, srcGPR);
 
         if (addrReg != NULL) {
             cg->stopUsingRegister(addrReg);

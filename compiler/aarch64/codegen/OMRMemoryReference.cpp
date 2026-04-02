@@ -291,7 +291,7 @@ void OMR::ARM64::MemoryReference::setSymbol(TR::Symbol *symbol, TR::CodeGenerato
 void OMR::ARM64::MemoryReference::validateImmediateOffsetAlignment(TR::Node *node, uint32_t alignment,
     TR::CodeGenerator *cg)
 {
-    intptr_t displacement = self()->getOffset();
+    intptr_t displacement = self()->getOffset(true);
     if ((displacement % alignment) != 0) {
         TR::Compilation *comp = cg->comp();
         logprintf(comp->getOption(TR_TraceCG), comp->log(),
